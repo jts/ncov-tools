@@ -1,5 +1,7 @@
 # ncov-tools
 
+Various tools and QC plots for working with coronavirus sequencing data.
+
 ## Installation
 
 To use this package, install the dependencies using conda:
@@ -64,5 +66,5 @@ snakemake -s qc/Snakefile all_qc_analysis
 
 ## Credit and Acknowledgements
 
-The tree-with-SNPs plot was inspired by a plot developed by Mads Albertsen in the ubioinfo slack.
+The tree-with-SNPs plot was inspired by a plot shared by Mads Albertsen in the ubioinfo slack.
 
