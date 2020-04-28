@@ -46,7 +46,8 @@ def get_bam_for_sample(wildcards):
     return bam_pattern.format(data_root=config["data_root"], sample=wildcards.sample)
 
 def get_tree_consensus_sequences(wildcards):
-    consensus_sequences = expand(config["data_root"] + "/{s}.primertrimmed.consensus.fa", s=get_sample_names())
+    pattern = get_consensus_pattern()
+    consensus_sequences = [pattern.format(data_root=config["data_root"], sample=s) for s in get_sample_names()]
 
     if "tree_include_consensus" in config:
         consensus_sequences.append(config["tree_include_consensus"])
