@@ -56,12 +56,16 @@ def get_tree_consensus_sequences(wildcards):
 #
 # top-level rules
 #
-rule all_qc:
+rule all_qc_sequencing:
     input:
         "qc_sequencing/covered_by_amplicon.pdf",
         "qc_sequencing/alt_frequency.pdf",
-        "qc_sequencing/depth_by_position.pdf",
-        "qc_analysis/genome_completeness.pdf"
+        "qc_sequencing/depth_by_position.pdf"
+
+rule all_qc_analysis:
+    input:
+        "qc_analysis/tree_snps.pdf"
+
 #
 # generate coverage QC data using bedtools
 #

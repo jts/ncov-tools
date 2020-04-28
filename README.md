@@ -15,7 +15,6 @@ This package is implemented as a snakemake pipeline, so requires a `config.yaml`
 As an example, let's say your data is laid out in the following structure:
 
 ```
-   
    run_200430/
      sampleA.sorted.bam
      sampleA.consensus.fasta
@@ -49,3 +48,21 @@ consensus_pattern: "{data_root}/{sample}.consensus.fasta"
 # when building a tree of the consensus genomes you can optionally include other sequences
 # in the tree by providing a fasta file here
 tree_include_consensus: some_genomes_from_gisaid.fasta
+```
+
+## Running
+
+After configuration, you can run the pipeline using Snakemake
+
+```
+# Build the sequencing QC plots (coverage, allele frequencies)
+snakemake -s qc/Snakefile all_qc_sequencing
+
+# Build the analysis QC plots (tree with annotated mutations)
+snakemake -s qc/Snakefile all_qc_analysis
+```
+
+## Credit and Acknowledgements
+
+The tree-with-SNPs plot was inspired by a plot developed by Mads Albertsen in the ubioinfo slack.
+
