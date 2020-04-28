@@ -66,5 +66,5 @@ snakemake -s qc/Snakefile all_qc_analysis
 
 ## Credit and Acknowledgements
 
-The tree-with-SNPs plot was inspired by a plot shared by Mads Albertsen in the ubioinfo slack.
+The tree-with-SNPs plot was inspired by a plot shared by Mads Albertsen.
 
