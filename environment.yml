@@ -1,0 +1,15 @@
+name: ncov-qc
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - snakemake
+  - mafft
+  - augur
+  - pysam
+  - r
+  - bioconductor-ggtree
+  - r-patchwork
+  - bedtools
+  - samtools

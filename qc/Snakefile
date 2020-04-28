@@ -1,0 +1,229 @@
+import glob
+import os
+
+configfile: "config.yaml"
+
+# detect samples based on sorted.bam, which is common between the ONT and Illumina pipeline
+bam_suffix = ".sorted.bam"
+
+def get_bam_pattern():
+    return config.get("bam_pattern", "{data_root}/{sample}.sorted.bam")
+
+def get_consensus_pattern():
+    return config.get("consensus_pattern", "{data_root}/{sample}.primertrimmed.consensus.fa")
+
+def get_sample_names():
+
+    # if defined in the config, use that
+    # otherwise we try to auto-detect based on the bam names
+    if "samples" in config:
+        return config["samples"]
+
+    # get all bams in the data directory based on the pattern
+    # the bam files follow
+    pattern = get_bam_pattern()
+
+    # form a glob we can use to get the bam files for each sample
+    gs = pattern.format(data_root=config["data_root"], sample="*")
+
+    bams = glob.glob(gs)
+    samples = list()
+    for b in bams:
+        f = os.path.basename(b)
+        fields = f.split(".")
+        if len(fields) > 4:
+            continue
+        samples.append(fields[0])
+
+    if len(samples) == 0:
+        print("Error: no samples found")
+        sys.exit(1)
+
+    return samples
+
+def get_bam_for_sample(wildcards):
+    bam_pattern = get_bam_pattern()
+    return bam_pattern.format(data_root=config["data_root"], sample=wildcards.sample)
+
+def get_tree_consensus_sequences(wildcards):
+    consensus_sequences = expand(config["data_root"] + "/{s}.primertrimmed.consensus.fa", s=get_sample_names())
+
+    if "tree_include_consensus" in config:
+        consensus_sequences.append(config["tree_include_consensus"])
+
+    return consensus_sequences
+
+#
+# top-level rules
+#
+rule all_qc:
+    input:
+        "qc_sequencing/covered_by_amplicon.pdf",
+        "qc_sequencing/alt_frequency.pdf",
+        "qc_sequencing/depth_by_position.pdf",
+        "qc_analysis/genome_completeness.pdf"
+#
+# generate coverage QC data using bedtools
+#
+rule make_amplicon_mean_coverage:
+    input:
+        get_bam_for_sample
+    output:
+        "qc_sequencing/{sample}.mean_coverage.bed"
+    params:
+        memory_per_thread="2G"
+    threads: 1
+    shell:
+        "echo -e \"reference_name\tstart\tend\tamplicon_id\tpool\tstrand\tmean_coverage\" > {output};"
+        "bedtools coverage -mean -a {config[amplicon_bed]} -b {input} >> {output}"
+
+rule make_amplicon_coverage:
+    input:
+        get_bam_for_sample
+    output:
+        "qc_sequencing/{sample}.amplicon_coverage.bed"
+    params:
+        memory_per_thread="2G"
+    threads: 1
+    shell:
+        "echo -e \"reference_name\tstart\tend\tamplicon_id\tpool\tstrand\tread_count\tcovered_bases\tamplicon_length\tfraction_covered\" > {output};"
+        "bedtools coverage -a {config[amplicon_bed]} -b {input} >> {output}"
+
+rule make_amplicon_per_base_coverage:
+    input:
+        get_bam_for_sample
+    output:
+        "qc_sequencing/{sample}.per_base_coverage.bed"
+    params:
+        memory_per_thread="2G"
+    threads: 1
+    shell:
+        "echo -e \"reference_name\tstart\tend\tamplicon_id\tpool\tstrand\tposition\tdepth\" > {output};"
+        "bedtools coverage -d -a {config[amplicon_bed]} -b {input} >> {output}"
+
+# pysam's index_filename option is broken so we have
+# to do some hacky symlinking to work around it
+rule make_tmp_bam:
+    input:
+        get_bam_for_sample
+    output:
+        "tmp_bam/{sample}.bam"
+    shell:
+        "ln -s ../{input} {output}"
+
+rule make_bam_index:
+    input:
+        "{prefix}.bam"
+    output:
+        "{prefix}.bam.bai"
+    shell:
+        "samtools index {input}"
+
+rule make_formatted_pileup:
+    input:
+        bam="tmp_bam/{sample}.bam",
+        bai="tmp_bam/{sample}.bam.bai"
+    output:
+        "qc_sequencing/{sample}.fpileup.tsv"
+    params:
+        pileup_script = srcdir("format_pileup.py")
+    shell:
+        "python {params.pileup_script} --bam {input.bam} --reference {config[reference_genome]} > {output}"
+
+rule merge_artic_qc:
+    input:
+        expand(config["data_root"] + "/{s}.qc.csv", s=get_sample_names())
+    output:
+        "qc_analysis/merged.qc.csv"
+    shell:
+        "cat {input} | awk 'NR == 1 || $0 !~ /qc_pass/' > {output}"
+
+#
+# Perform a multiple alignment with mafft and build a tree
+#
+rule make_merged_consensus:
+    input:
+        get_tree_consensus_sequences
+    output:
+        "qc_analysis/consensus.fasta"
+    shell:
+        "cat {input} > {output}"
+
+rule make_msa:
+    input:
+        "qc_analysis/consensus.fasta"
+    output:
+        "qc_analysis/aligned.fasta"
+    shell:
+        "augur align --sequences {input} --reference-sequence {config[reference_genome]} --output {output} --fill-gaps"
+
+rule make_tree:
+    input:
+        "qc_analysis/aligned.fasta"
+    output:
+        "qc_analysis/tree_raw.nwk"
+    shell:
+        "augur tree --alignment {input} --output {output}"
+
+rule make_alleles:
+    input:
+        "qc_analysis/aligned.fasta"
+    output:
+        "qc_analysis/alleles.tsv"
+    params:
+        alleles_script = srcdir("../tree/align2alleles.py")
+    shell:
+        "python {params.alleles_script} --reference-name MN908947.3 {input} > {output}"
+#
+# QC plots
+#
+rule make_qc_plot_depth_by_position:
+    input:
+        expand("qc_sequencing/{s}.per_base_coverage.bed", s=get_sample_names())
+    output:
+        expand("qc_sequencing/depth_by_position.pdf")
+    params:
+        plot_script = srcdir("plot_qc_sequencing.R")
+    shell:
+        "Rscript {params.plot_script} depth_by_position"
+
+rule make_qc_plot_fraction_covered_by_amplicon:
+    input:
+        expand("qc_sequencing/{s}.amplicon_coverage.bed", s=get_sample_names())
+    output:
+        expand("qc_sequencing/covered_by_amplicon.pdf")
+    params:
+        plot_script = srcdir("plot_qc_sequencing.R")
+    shell:
+        "Rscript {params.plot_script} amplicon_covered_fraction"
+
+rule make_qc_plot_alt_frequency:
+    input:
+        expand("qc_sequencing/{s}.fpileup.tsv", s=get_sample_names())
+    output:
+        expand("qc_sequencing/alt_frequency.pdf")
+    params:
+        plot_script = srcdir("plot_qc_sequencing.R")
+    shell:
+        "Rscript {params.plot_script} alt_allele_frequency"
+
+rule make_qc_genome_completeness:
+    input:
+        "qc_analysis/merged.qc.csv"
+    output:
+        "qc_analysis/genome_completeness.pdf"
+    params:
+        plot_script = srcdir("plot_qc_sequencing.R")
+    shell:
+        "Rscript {params.plot_script} genome_completeness"
+
+rule make_qc_tree_snps:
+    input:
+        tree="qc_analysis/tree_raw.nwk",
+        alleles="qc_analysis/alleles.tsv"
+    output:
+        "qc_analysis/tree_snps.pdf"
+    params:
+        plot_script = srcdir("../tree/plot_tree_snps.R")
+    shell:
+        "Rscript {params.plot_script} qc_analysis"
