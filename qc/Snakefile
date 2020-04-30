@@ -12,6 +12,9 @@ def get_bam_pattern():
 def get_consensus_pattern():
     return config.get("consensus_pattern", "{data_root}/{sample}.primertrimmed.consensus.fa")
 
+def get_metadata_file(wildcards):
+    return config.get("metadata", "")
+
 def get_sample_names():
 
     # if defined in the config, use that
@@ -66,6 +69,11 @@ rule all_qc_sequencing:
 rule all_qc_analysis:
     input:
         "qc_analysis/tree_snps.pdf"
+
+rule all_qc_by_ct:
+    input:
+        "qc_sequencing/amplicon_depth_by_ct.pdf",
+        "qc_analysis/genome_completeness_by_ct.pdf"
 
 #
 # generate coverage QC data using bedtools
@@ -188,9 +196,21 @@ rule make_qc_plot_depth_by_position:
     output:
         expand("qc_sequencing/depth_by_position.pdf")
     params:
+        plot_script = srcdir("plot_qc_sequencing.R"),
+        metadata=get_metadata_file
+    shell:
+        "Rscript {params.plot_script} depth_by_position {params.metadata}"
+
+rule make_qc_plot_amplicon_depth_by_ct:
+    input:
+        files=expand("qc_sequencing/{s}.per_base_coverage.bed", s=get_sample_names()),
+        metadata=get_metadata_file
+    output:
+        "qc_sequencing/amplicon_depth_by_ct.pdf"
+    params:
         plot_script = srcdir("plot_qc_sequencing.R")
     shell:
-        "Rscript {params.plot_script} depth_by_position"
+        "Rscript {params.plot_script} amplicon_depth_by_ct {input.metadata}"
 
 rule make_qc_plot_fraction_covered_by_amplicon:
     input:
@@ -221,6 +241,17 @@ rule make_qc_genome_completeness:
         plot_script = srcdir("plot_qc_sequencing.R")
     shell:
         "Rscript {params.plot_script} genome_completeness"
+
+rule make_qc_genome_completeness_by_ct:
+    input:
+        qc="qc_analysis/merged.qc.csv",
+        metadata=get_metadata_file
+    output:
+        "qc_analysis/genome_completeness_by_ct.pdf"
+    params:
+        plot_script = srcdir("plot_qc_sequencing.R")
+    shell:
+        "Rscript {params.plot_script} genome_completeness_by_ct {input.metadata}"
 
 rule make_qc_tree_snps:
     input:
