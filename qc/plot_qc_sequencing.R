@@ -40,22 +40,31 @@ plot_fraction_covered_by_amplicon <- function(df)
 
 plot_depth_per_base <- function(df, metadata)
 {
+    require(ggforce)
+
     # merge df with metadata   
     merged = dplyr::full_join(df, metadata, by = "sample")
 
     # construct new column containing the facet label
     merged$label = paste(merged$sample, " Ct: ", merged$ct, sep="")
 
-    # bedtools coverage reports the position along the interval, adding start gives
-    # us the position along the genome
-    ggplot(merged, aes(x=start + position, y=depth)) + 
-        geom_line() +
-        scale_y_log10() + 
-        facet_wrap(. ~ label, ncol=1) + 
-        xlab("Genome position (nt)") +
-        theme_bw()
-        
-        ggsave("qc_sequencing/depth_by_position.pdf", width=8, height=16)
+    num_samples = length(unique(merged$sample))
+    plots_per_page = 8
+
+    pdf("qc_sequencing/depth_by_position.pdf", width=8, height=16)
+
+    for(i in seq(1, ceiling(num_samples / plots_per_page))) {
+        # bedtools coverage reports the position along the interval, adding start gives
+        # us the position along the genome
+        p <- ggplot(merged, aes(x=start + position, y=depth)) + 
+            geom_line() +
+            scale_y_log10() + 
+            facet_wrap_paginate(. ~ label, nrow=8, ncol=1, page=i) + 
+            xlab("Genome position (nt)") +
+            theme_bw()
+        print(p)
+    }
+    dev.off()
 }
 
 plot_alt_frequency <- function(df)

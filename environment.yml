@@ -11,5 +11,6 @@ dependencies:
   - r
   - bioconductor-ggtree
   - r-patchwork
+  - r-ggforce
   - bedtools
   - samtools
