@@ -159,8 +159,10 @@ rule make_merged_consensus:
         get_tree_consensus_sequences
     output:
         "qc_analysis/consensus.fasta"
+    params:
+        rename_script = srcdir("../tree/rename_consensus.py")
     shell:
-        "cat {input} > {output}"
+        "python {params.rename_script} {input} > {output}"
 
 rule make_msa:
     input:
