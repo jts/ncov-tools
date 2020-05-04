@@ -160,7 +160,7 @@ rule make_merged_consensus:
     output:
         "qc_analysis/consensus.fasta"
     params:
-        rename_script = srcdir("../tree/rename_consensus.py")
+        rename_script = srcdir("../tree/preprocess_consensus.py")
     shell:
         "python {params.rename_script} {input} > {output}"
 

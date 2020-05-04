@@ -13,7 +13,7 @@ plot_depth_by_amplicon <- function(df)
 plot_depth_by_amplicon_and_ct <- function(df, metadata)
 {
     # merge df with metadata   
-    merged = dplyr::full_join(df, metadata, by = "sample")
+    merged = dplyr::inner_join(df, metadata, by = "sample")
 
     summary <- merged %>% group_by(sample, amplicon_id, ct)  %>% summarise(mean_coverage=mean(depth))
 
@@ -40,7 +40,6 @@ plot_fraction_covered_by_amplicon <- function(df)
 
 plot_depth_per_base <- function(df, metadata)
 {
-    require(ggforce)
 
     # merge df with metadata   
     merged = dplyr::full_join(df, metadata, by = "sample")
@@ -69,17 +68,21 @@ plot_depth_per_base <- function(df, metadata)
 
 plot_alt_frequency <- function(df)
 {
-    # bedtools coverage reports the position along the interval, adding start gives
-    # us the position along the genome
-    ggplot(df, aes(x=position, y=alt_frequency, color=depth)) + 
-        geom_line() +
-        facet_wrap(. ~ sample, ncol=1) + 
-        #scale_colour_gradient(low = "white", high = "black") +
-        xlab("Genome position (nt)") +
-        ylab("Alt Frequency") +
-        theme_bw()
-        
-        ggsave("qc_sequencing/alt_frequency.pdf", width=8, height=24)
+    pdf("qc_sequencing/alt_frequency.pdf", width=8, height=24)
+    num_samples = length(unique(df$sample))
+    plots_per_page = 8
+
+    for(i in seq(1, ceiling(num_samples / plots_per_page))) {
+        p <- ggplot(df, aes(x=position, y=alt_frequency, color=depth)) + 
+            geom_line() +
+            facet_wrap_paginate(. ~ sample, nrow=plots_per_page, ncol=1, page=i) + 
+            #scale_colour_gradient(low = "white", high = "black") +
+            xlab("Genome position (nt)") +
+            ylab("Alt Frequency") +
+            theme_bw()
+        print(p)
+    }
+    dev.off()
 }
 
 plot_genome_completeness <- function(df)
@@ -97,7 +100,7 @@ plot_genome_completeness <- function(df)
 plot_genome_completeness_by_ct <- function(df, metadata)
 {
     # merge df with metadata   
-    merged = dplyr::full_join(df, metadata, by = "sample")
+    merged = dplyr::inner_join(df, metadata, by = "sample")
 
     ggplot(merged, aes(x=ct, y=pct_covered_bases)) +
         geom_point() +
@@ -136,6 +139,7 @@ read_qc_csv <- function(fn) {
 
 library(ggplot2)
 library(dplyr)
+library(ggforce)
 
 if(!interactive()) {
     #mean_coverage <- read_glob("qc_sequencing", "*.mean_coverage.bed")
@@ -151,7 +155,13 @@ if(!interactive()) {
                           ct=double())
 
     if(length(args) == 2) {
-        metadata <- read.table(args[2], header=T)
+        metadata.raw <- read.table(args[2], header=T)
+        
+        # clean metadata of unknown Cts
+        metadata = subset(metadata.raw, ct != "unknown")
+    
+        # convert Cts to numeric
+        metadata$ct = as.numeric(as.character(metadata$ct))
     }
 
     if(args[1] == "depth_by_position") {
