@@ -67,12 +67,11 @@ if(!interactive()) {
 
     if(length(args) == 1) {
         data_dir <- args[1]
-        tree_fn <- "tree_raw.nwk"
     }
 
     tree_path = paste(data_dir, tree_fn, sep="/")
     tree <- read.tree(tree_path)
-
+    
     alleles_path = paste(data_dir, "alleles.tsv", sep="/")
     alleles <- read.table(alleles_path, header=T)
     p <- plot_tree_with_snps(tree, alleles)
