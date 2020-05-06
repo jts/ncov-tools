@@ -14,4 +14,4 @@ dependencies:
   - r-ggforce
   - bedtools
   - samtools
-  - newick-utils
+  - newick_utils
