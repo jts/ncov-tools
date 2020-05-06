@@ -67,16 +67,22 @@ if(!interactive()) {
 
     if(length(args) == 1) {
         data_dir <- args[1]
-        tree_fn <- "tree_raw.nwk"
     }
 
     tree_path = paste(data_dir, tree_fn, sep="/")
     tree <- read.tree(tree_path)
-
+    
     alleles_path = paste(data_dir, "alleles.tsv", sep="/")
     alleles <- read.table(alleles_path, header=T)
     p <- plot_tree_with_snps(tree, alleles)
 
     plot_path = paste(data_dir, "tree_snps.pdf", sep="/")
-    ggsave(plot_path, p, height=8, width=20)
+    
+    # count number of samples, for scaling the plot
+    d = fortify(tree)
+    d = subset(d, isTip)
+    num_samples = nrow(d)
+    pdf_height = 0.125 * num_samples
+    pdf_height = max(8, pdf_height)
+    ggsave(plot_path, p, height=pdf_height, width=20)
 }

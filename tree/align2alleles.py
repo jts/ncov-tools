@@ -83,7 +83,6 @@ if args.mode == "variant_list":
                 supported_bases.append(b)
 
         if len(supported_bases) > 1:
-            #print("Variant at", i, supported_bases, counters[i])
             variant_positions.append(i)
     write_variant_list(variant_positions, sequences, reference_sample)
 

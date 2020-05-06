@@ -50,6 +50,11 @@ consensus_pattern: "{data_root}/{sample}.consensus.fasta"
 # when building a tree of the consensus genomes you can optionally include other sequences
 # in the tree by providing a fasta file here
 tree_include_consensus: some_genomes_from_gisaid.fasta
+
+# some plots can by annotated with external metadata. this
+# file contains the metadata in simple tab-delimited format
+# one column must be 'sample'
+metadata: metadata.tsv
 ```
 
 ## Running
@@ -62,6 +67,9 @@ snakemake -s qc/Snakefile all_qc_sequencing
 
 # Build the analysis QC plots (tree with annotated mutations)
 snakemake -s qc/Snakefile all_qc_analysis
+
+# Build the plots that require a metadata file with a "ct" column
+snakemake -s qc/Snakefile all_qc_by_ct
 ```
 
 ## Credit and Acknowledgements
