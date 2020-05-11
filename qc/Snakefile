@@ -63,7 +63,7 @@ def get_tree_consensus_sequences(wildcards):
 rule all_qc_sequencing:
     input:
         "qc_sequencing/covered_by_amplicon.pdf",
-        "qc_sequencing/alt_frequency.pdf",
+        #"qc_sequencing/alt_frequency.pdf",
         "qc_sequencing/depth_by_position.pdf"
 
 rule all_qc_analysis:
@@ -122,7 +122,7 @@ rule make_tmp_bam:
     output:
         "tmp_bam/{sample}.bam"
     shell:
-        "ln -s ../{input} {output}"
+        "ln -s {input} {output}"
 
 rule make_bam_index:
     input:
