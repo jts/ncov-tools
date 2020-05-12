@@ -17,7 +17,7 @@ plot_tree_with_snps <- function(tree, alleles)
 {
   require(ggtree)
   require(ggplot2)
-  library(patchwork)
+  require(patchwork)
   
   # get order of tips in the tree
   # from: https://groups.google.com/forum/#!topic/bioc-ggtree/LqRDK78m3U4
@@ -57,7 +57,36 @@ plot_tree_with_snps <- function(tree, alleles)
                        legend.position = "top") +
     scale_fill_manual(name="Variant", values=cols, drop=FALSE)
   
-  r <- g + panel.snps + plot_layout(widths = c(1, 3))
+  # if a lineage file exists, annotate lineages on the plot
+  lineage_fn <- "lineage_report.csv"
+  if(file.exists(lineage_fn)) { 
+     lineage <- read.csv(
+          file=lineage_fn,
+          header=TRUE,
+          as.is=TRUE,
+          quote="\"")
+
+      lineage <- lineage[c("taxon", "lineage")]
+      colnames(lineage) <- c("name", "lineage")
+      lineage$name <- factor(lineage$name, levels=tip.order)
+      lineage$pos <- 1
+      lineage$lineage <- as.factor(lineage$lineage)
+
+      panel.cov <- ggplot(lineage, aes(x=pos, y=name)) +
+        geom_tile(aes(fill=lineage), color='white') +
+        ylim(tip.order) +
+        theme_bw() +
+        theme(axis.line = element_blank(), axis.title.y=element_blank(), axis.title.x=element_blank(),
+              axis.ticks.y=element_blank(), axis.ticks.x=element_blank(),
+              axis.text.x=element_blank(), axis.text.y=element_blank(),
+              panel.grid.major=element_blank(),
+              panel.background=element_blank(),
+              panel.border=element_blank(),
+              plot.margin=unit(c(0.5, 0.5, 0.5, 0.5), "mm"))
+    r <- g + panel.cov + panel.snps + plot_layout(widths = c(1, 0.1, 3), guides="collect")
+  } else {
+    r <- g + panel.snps + plot_layout(widths = c(1, 3))
+  }
   return(r)
 }
 
