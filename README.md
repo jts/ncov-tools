@@ -55,6 +55,11 @@ tree_include_consensus: some_genomes_from_gisaid.fasta
 # file contains the metadata in simple tab-delimited format
 # one column must be 'sample'
 metadata: metadata.tsv
+
+#
+# set this flag to true to include lineage assignments with pangolin in the output plots
+#
+assign_lineages: true
 ```
 
 ## Running
