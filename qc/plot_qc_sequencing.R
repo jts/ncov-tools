@@ -40,7 +40,6 @@ plot_fraction_covered_by_amplicon <- function(df)
 
 plot_depth_per_base <- function(df, metadata)
 {
-
     # merge df with metadata   
     merged = dplyr::full_join(df, metadata, by = "sample")
 
