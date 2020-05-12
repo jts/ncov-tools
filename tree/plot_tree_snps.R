@@ -28,7 +28,11 @@ plot_tree_with_snps <- function(tree, alleles)
   # order SNPs according to tip
   alleles$name = factor(alleles$name, levels=tip.order)
   alleles$pos = factor(alleles$pos)
-  alleles$alt_allele = factor(alleles$alt_allele, c("A", "C", "G", "T", "N"))
+
+  bases = c("A", "C", "G", "T", "N", "X")
+  alleles$alt_allele = factor(alleles$alt_allele, bases)
+  ambiguous_bases = !(alleles$alt_allele %in% bases)
+  alleles$alt_allele[ambiguous_bases] = "X"
   
   # basic tree plot
   # uncomment to show tip labels, to make sure they are aligned correctly
@@ -39,7 +43,7 @@ plot_tree_with_snps <- function(tree, alleles)
     theme_tree2()
   
   # draw panel with variants
-  cols <- c("blue", "red", "green3", "purple3", "lightgrey")
+  cols <- c("blue", "red", "green3", "purple3", "lightgrey", "black")
   panel.snps <- ggplot(alleles, aes(x=pos, y=name)) + 
     geom_tile(aes(fill=alt_allele), color="white") +
     ylim(tip.order) +
@@ -51,7 +55,7 @@ plot_tree_with_snps <- function(tree, alleles)
                        panel.border = element_rect(colour = "black", fill=NA, size=0.5), 
                        axis.text.x = element_text(angle = 90, hjust = 1),
                        legend.position = "top") +
-    scale_fill_manual(name="Variant", values=cols)
+    scale_fill_manual(name="Variant", values=cols, drop=FALSE)
   
   r <- g + panel.snps + plot_layout(widths = c(1, 3))
   return(r)
