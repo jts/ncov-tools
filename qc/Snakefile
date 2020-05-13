@@ -57,13 +57,19 @@ def get_tree_consensus_sequences(wildcards):
 
     return consensus_sequences
 
+def get_tree_plot_input(wildcards):
+    input_list = ["qc_analysis/tree.nwk", "qc_analysis/alleles.tsv"]
+    if "assign_lineages" in config and config["assign_lineages"]:
+        input_list.append("lineage_report.csv")
+    return input_list
+
 #
 # top-level rules
 #
 rule all_qc_sequencing:
     input:
         "qc_sequencing/covered_by_amplicon.pdf",
-        "qc_sequencing/alt_frequency.pdf",
+        #"qc_sequencing/alt_frequency.pdf",
         "qc_sequencing/depth_by_position.pdf"
 
 rule all_qc_analysis:
@@ -122,7 +128,7 @@ rule make_tmp_bam:
     output:
         "tmp_bam/{sample}.bam"
     shell:
-        "ln -s ../{input} {output}"
+        "ln -s {input} {output}"
 
 rule make_bam_index:
     input:
@@ -197,6 +203,15 @@ rule make_alleles:
         alleles_script = srcdir("../tree/align2alleles.py")
     shell:
         "python {params.alleles_script} --reference-name MN908947.3 {input} > {output}"
+
+rule make_lineage_assignments:
+    input:
+        "qc_analysis/consensus.fasta"
+    output:
+        "lineage_report.csv"
+    threads: workflow.cores
+    shell:
+        "pangolin -t {threads} {input}"
 #
 # QC plots
 #
@@ -264,9 +279,7 @@ rule make_qc_genome_completeness_by_ct:
         "Rscript {params.plot_script} genome_completeness_by_ct {input.metadata}"
 
 rule make_qc_tree_snps:
-    input:
-        tree="qc_analysis/tree.nwk",
-        alleles="qc_analysis/alleles.tsv"
+    input: get_tree_plot_input
     output:
         "qc_analysis/tree_snps.pdf"
     params:
