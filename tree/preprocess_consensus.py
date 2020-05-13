@@ -19,7 +19,9 @@ for fn in sys.argv[1:]:
         total = 0
         for base, count in base_counter.items():
             total += count
-        completeness = 1 - (float(base_counter['N']) / total)
+        completeness = 0
+        if total > 0:
+            completeness = 1 - (float(base_counter['N']) / total)
         if completeness >= completeness_threshold:
             sys.stdout.write(">" + record.name + "\n")
             sys.stdout.write(record.sequence + "\n")
