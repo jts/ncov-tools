@@ -74,7 +74,7 @@ plot_tree_with_snps <- function(tree, alleles)
 
       panel.cov <- ggplot(lineage, aes(x=pos, y=name)) +
         geom_tile(aes(fill=lineage), color='white') +
-        geom_text(aes(label=lineage), size=10) +
+        geom_text(aes(label=lineage), size=3) +
         ylim(tip.order) +
         theme_bw() +
         theme(axis.line = element_blank(), axis.title.y=element_blank(), axis.title.x=element_blank(),
