@@ -33,6 +33,9 @@ Then your config.yaml should look like:
 # path to the top-level directory containing the analysis results
 data_root: run_200430
 
+# optionally the plots can have a "run name" prefix. If this is not defined the prefix will be "default"
+run_name: my_run
+
 # path to the file containing the amplicon regions (not the primer sites, the actual amplicons)
 amplicon_bed: resources/artic_amplicons.bed
 
@@ -72,10 +75,9 @@ snakemake -s qc/Snakefile all_qc_sequencing
 
 # Build the analysis QC plots (tree with annotated mutations)
 snakemake -s qc/Snakefile all_qc_analysis
-
-# Build the plots that require a metadata file with a "ct" column
-snakemake -s qc/Snakefile all_qc_by_ct
 ```
+
+The results will be placed in the `plots` directory.
 
 ## Credit and Acknowledgements
 

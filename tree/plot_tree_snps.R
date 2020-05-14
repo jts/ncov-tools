@@ -74,6 +74,7 @@ plot_tree_with_snps <- function(tree, alleles)
 
       panel.cov <- ggplot(lineage, aes(x=pos, y=name)) +
         geom_tile(aes(fill=lineage), color='white') +
+        geom_text(aes(label=lineage), size=10) +
         ylim(tip.order) +
         theme_bw() +
         theme(axis.line = element_blank(), axis.title.y=element_blank(), axis.title.x=element_blank(),
@@ -97,9 +98,10 @@ if(!interactive()) {
     # default to nextstrain structure
     data_dir <- "results"
     tree_fn <- "tree.nwk"
-
-    if(length(args) == 1) {
+    prefix <- "default"
+    if(length(args) == 2) {
         data_dir <- args[1]
+        prefix <- args[2]
     }
 
     tree_path = paste(data_dir, tree_fn, sep="/")
@@ -109,7 +111,7 @@ if(!interactive()) {
     alleles <- read.table(alleles_path, header=T)
     p <- plot_tree_with_snps(tree, alleles)
 
-    plot_path = paste(data_dir, "tree_snps.pdf", sep="/")
+    plot_path = sprintf("plots/%s_tree_snps.pdf", prefix)
     
     # count number of samples, for scaling the plot
     d = fortify(tree)

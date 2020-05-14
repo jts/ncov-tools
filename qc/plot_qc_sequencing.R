@@ -1,4 +1,4 @@
-plot_depth_by_amplicon <- function(df)
+plot_depth_by_amplicon <- function(df, outname)
 {
     ggplot(df, aes(x=sample, y=mean_coverage)) + 
         geom_point() +
@@ -7,10 +7,10 @@ plot_depth_by_amplicon <- function(df)
         theme_bw() + 
         theme(axis.text.x = element_text(angle = 90, hjust = 1))
 
-        ggsave("qc_sequencing/depth_by_amplicon_sample.pdf", width=15, height=10)
+        ggsave(outname, width=15, height=10)
 }
 
-plot_depth_by_amplicon_and_ct <- function(df, metadata)
+plot_depth_by_amplicon_and_ct <- function(df, metadata, outname)
 {
     # merge df with metadata   
     merged = dplyr::inner_join(df, metadata, by = "sample")
@@ -24,10 +24,10 @@ plot_depth_by_amplicon_and_ct <- function(df, metadata)
         theme_bw() + 
         theme(axis.text.x = element_text(angle = 90, hjust = 1))
 
-        ggsave("qc_sequencing/amplicon_depth_by_ct.pdf", width=15, height=10)
+        ggsave(outname, width=15, height=10)
 }
 
-plot_fraction_covered_by_amplicon <- function(df)
+plot_fraction_covered_by_amplicon <- function(df, outname)
 {
     ggplot(df, aes(x=sample, y=fraction_covered)) + 
         geom_point() +
@@ -35,10 +35,10 @@ plot_fraction_covered_by_amplicon <- function(df)
         theme_bw() + 
         theme(axis.text.x = element_text(angle = 90, hjust = 1))
 
-        ggsave("qc_sequencing/covered_by_amplicon.pdf", width=15, height=10)
+        ggsave(outname, width=15, height=10)
 }
 
-plot_depth_per_base <- function(df, metadata)
+plot_depth_per_base <- function(df, metadata, outname)
 {
     # merge df with metadata   
     merged = dplyr::full_join(df, metadata, by = "sample")
@@ -49,7 +49,7 @@ plot_depth_per_base <- function(df, metadata)
     num_samples = length(unique(merged$sample))
     plots_per_page = 8
 
-    pdf("qc_sequencing/depth_by_position.pdf", width=8, height=16)
+    pdf(outname, width=8, height=16)
 
     for(i in seq(1, ceiling(num_samples / plots_per_page))) {
         # bedtools coverage reports the position along the interval, adding start gives
@@ -65,9 +65,9 @@ plot_depth_per_base <- function(df, metadata)
     dev.off()
 }
 
-plot_alt_frequency <- function(df)
+plot_alt_frequency <- function(df, outname)
 {
-    pdf("qc_sequencing/alt_frequency.pdf", width=8, height=24)
+    pdf(outname, width=8, height=24)
     num_samples = length(unique(df$sample))
     plots_per_page = 8
 
@@ -84,19 +84,7 @@ plot_alt_frequency <- function(df)
     dev.off()
 }
 
-plot_genome_completeness <- function(df)
-{
-    ggplot(df, aes(x=sample, y=pct_covered_bases)) +
-        geom_col() +
-        xlab("Sample") +
-        ylab("Genome Completeness (%)") +
-        theme_bw() +
-        theme(axis.text.x = element_text(angle = 90, hjust = 1))
-        
-        ggsave("qc_analysis/genome_completeness.pdf", width=12, height=8)
-}
-
-plot_genome_completeness_by_ct <- function(df, metadata)
+plot_genome_completeness_by_ct <- function(df, metadata, outname)
 {
     # merge df with metadata   
     merged = dplyr::inner_join(df, metadata, by = "sample")
@@ -109,7 +97,7 @@ plot_genome_completeness_by_ct <- function(df, metadata)
         theme_bw() +
         theme(axis.text.x = element_text(angle = 90, hjust = 1))
         
-        ggsave("qc_analysis/genome_completeness_by_ct.pdf", width=12, height=8)
+        ggsave(outname, width=12, height=8)
 }
 
 # load all the files matching this name into one data frame
@@ -149,12 +137,15 @@ if(!interactive()) {
         q()
     }
 
+    command = args[1]
+    prefix = args[2]
+
     # metadata is optional so we make a default table here
     metadata = data.frame(sample=character(),
                           ct=double())
 
-    if(length(args) == 2) {
-        metadata.raw <- read.table(args[2], header=T)
+    if(length(args) == 3) {
+        metadata.raw <- read.table(args[3], header=T)
         
         # clean metadata of unknown Cts
         metadata = subset(metadata.raw, ct != "unknown")
@@ -163,23 +154,35 @@ if(!interactive()) {
         metadata$ct = as.numeric(as.character(metadata$ct))
     }
 
-    if(args[1] == "depth_by_position") {
+    if(command == "depth_by_position") {
+        
         df <- read_glob("qc_sequencing", "*.per_base_coverage.bed")
-        plot_depth_per_base(df, metadata)
-    } else if(args[1] == "amplicon_depth_by_ct") {
+        outname = sprintf("plots/%s_depth_by_position.pdf", prefix)
+        plot_depth_per_base(df, metadata, outname)
+
+    } else if(command == "amplicon_depth_by_ct") {
+        
         df <- read_glob("qc_sequencing", "*.per_base_coverage.bed")
-        plot_depth_by_amplicon_and_ct(df, metadata)
-    } else if(args[1] == "amplicon_covered_fraction") {
+        outname = sprintf("plots/%s_amplicon_depth_by_ct.pdf", prefix)
+        plot_depth_by_amplicon_and_ct(df, metadata, outname)
+
+    } else if(command == "amplicon_covered_fraction") {
+
         df <- read_glob("qc_sequencing", "*.amplicon_coverage.bed")
-        plot_fraction_covered_by_amplicon(df)
-    } else if(args[1] == "alt_allele_frequency") {
+        outname = sprintf("plots/%s_amplicon_covered_fraction.pdf", prefix)
+        plot_fraction_covered_by_amplicon(df, outname)
+
+    } else if(command == "alt_allele_frequency") {
+ 
         df <- read_glob("qc_sequencing", "*.fpileup.tsv")
-        plot_alt_frequency(df)
-    } else if(args[1] == "genome_completeness") {
+        outname = sprintf("plots/%s_alt_frequency.pdf", prefix)
+        plot_alt_frequency(df, outname)
+
+    } else if(command == "genome_completeness_by_ct") {
+        
         df <- read_qc_csv("qc_analysis/merged.qc.csv")
-        plot_genome_completeness(df)
-    } else if(args[1] == "genome_completeness_by_ct") {
-        df <- read_qc_csv("qc_analysis/merged.qc.csv")
-        plot_genome_completeness_by_ct(df, metadata)
+        outname = sprintf("plots/%s_genome_completeness_by_ct.pdf", prefix)
+        plot_genome_completeness_by_ct(df, metadata, outname)
+
     }
 }
