@@ -15,6 +15,9 @@ def get_consensus_pattern():
 def get_metadata_file(wildcards):
     return config.get("metadata", "")
 
+def get_run_name():
+    return config.get("run_name", "default")
+
 def get_sample_names():
 
     # if defined in the config, use that
@@ -63,23 +66,33 @@ def get_tree_plot_input(wildcards):
         input_list.append("lineage_report.csv")
     return input_list
 
+def get_qc_sequencing_plots(wildcards):
+    prefix = get_run_name()
+    out = [ "plots/%s_amplicon_covered_fraction.pdf" % (prefix),
+            "plots/%s_depth_by_position.pdf" % (prefix) ]
+    
+    # add plots that need Ct values
+    if get_metadata_file(wildcards) != "":
+        out.append("plots/%s_amplicon_depth_by_ct.pdf" % (prefix))
+    return out
+
+def get_qc_analysis_plots(wildcards):
+    prefix = get_run_name()
+    out = [ "plots/%s_tree_snps.pdf" % (prefix) ]
+    if get_metadata_file(wildcards) != "":
+        out.append("plots/%s_genome_completeness_by_ct.pdf" % (prefix))
+    return out
+
 #
 # top-level rules
 #
 rule all_qc_sequencing:
     input:
-        "qc_sequencing/covered_by_amplicon.pdf",
-        #"qc_sequencing/alt_frequency.pdf",
-        "qc_sequencing/depth_by_position.pdf"
+        get_qc_sequencing_plots
 
 rule all_qc_analysis:
     input:
-        "qc_analysis/tree_snps.pdf"
-
-rule all_qc_by_ct:
-    input:
-        "qc_sequencing/amplicon_depth_by_ct.pdf",
-        "qc_analysis/genome_completeness_by_ct.pdf"
+        get_qc_analysis_plots
 
 #
 # generate coverage QC data using bedtools
@@ -128,7 +141,7 @@ rule make_tmp_bam:
     output:
         "tmp_bam/{sample}.bam"
     shell:
-        "ln -s {input} {output}"
+        "ln -s \"$(readlink -f {input})\" {output}"
 
 rule make_bam_index:
     input:
@@ -219,70 +232,60 @@ rule make_qc_plot_depth_by_position:
     input:
         expand("qc_sequencing/{s}.per_base_coverage.bed", s=get_sample_names())
     output:
-        expand("qc_sequencing/depth_by_position.pdf")
+        "plots/{prefix}_depth_by_position.pdf"
     params:
         plot_script = srcdir("plot_qc_sequencing.R"),
         metadata=get_metadata_file
     shell:
-        "Rscript {params.plot_script} depth_by_position {params.metadata}"
+        "Rscript {params.plot_script} depth_by_position {wildcards.prefix} {params.metadata}"
 
 rule make_qc_plot_amplicon_depth_by_ct:
     input:
         files=expand("qc_sequencing/{s}.per_base_coverage.bed", s=get_sample_names()),
         metadata=get_metadata_file
     output:
-        "qc_sequencing/amplicon_depth_by_ct.pdf"
+        "plots/{prefix}_amplicon_depth_by_ct.pdf"
     params:
         plot_script = srcdir("plot_qc_sequencing.R")
     shell:
-        "Rscript {params.plot_script} amplicon_depth_by_ct {input.metadata}"
+        "Rscript {params.plot_script} amplicon_depth_by_ct {wildcards.prefix} {input.metadata}"
 
 rule make_qc_plot_fraction_covered_by_amplicon:
     input:
         expand("qc_sequencing/{s}.amplicon_coverage.bed", s=get_sample_names())
     output:
-        expand("qc_sequencing/covered_by_amplicon.pdf")
+        "plots/{prefix}_amplicon_covered_fraction.pdf"
     params:
         plot_script = srcdir("plot_qc_sequencing.R")
     shell:
-        "Rscript {params.plot_script} amplicon_covered_fraction"
+        "Rscript {params.plot_script} amplicon_covered_fraction {wildcards.prefix}"
 
 rule make_qc_plot_alt_frequency:
     input:
         expand("qc_sequencing/{s}.fpileup.tsv", s=get_sample_names())
     output:
-        expand("qc_sequencing/alt_frequency.pdf")
+        expand("plots/alt_frequency.pdf")
     params:
         plot_script = srcdir("plot_qc_sequencing.R")
     shell:
-        "Rscript {params.plot_script} alt_allele_frequency"
-
-rule make_qc_genome_completeness:
-    input:
-        "qc_analysis/merged.qc.csv"
-    output:
-        "qc_analysis/genome_completeness.pdf"
-    params:
-        plot_script = srcdir("plot_qc_sequencing.R")
-    shell:
-        "Rscript {params.plot_script} genome_completeness"
+        "Rscript {params.plot_script} alt_allele_frequency {wildcards.prefix}"
 
 rule make_qc_genome_completeness_by_ct:
     input:
         qc="qc_analysis/merged.qc.csv",
         metadata=get_metadata_file
     output:
-        "qc_analysis/genome_completeness_by_ct.pdf"
+        "plots/{prefix}_genome_completeness_by_ct.pdf"
     params:
         plot_script = srcdir("plot_qc_sequencing.R")
     shell:
-        "Rscript {params.plot_script} genome_completeness_by_ct {input.metadata}"
+        "Rscript {params.plot_script} genome_completeness_by_ct {wildcards.prefix} {input.metadata}"
 
 rule make_qc_tree_snps:
     input: get_tree_plot_input
     output:
-        "qc_analysis/tree_snps.pdf"
+        "plots/{prefix}_tree_snps.pdf"
     params:
         plot_script = srcdir("../tree/plot_tree_snps.R")
     shell:
-        "Rscript {params.plot_script} qc_analysis"
+        "Rscript {params.plot_script} qc_analysis {wildcards.prefix}"
