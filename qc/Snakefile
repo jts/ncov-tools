@@ -94,6 +94,10 @@ rule all_qc_analysis:
     input:
         get_qc_analysis_plots
 
+rule qc_summary_all:
+    input:
+        "qc_sequencing/summary_qc.tsv"
+
 #
 # generate coverage QC data using bedtools
 #
@@ -289,3 +293,26 @@ rule make_qc_tree_snps:
         plot_script = srcdir("../tree/plot_tree_snps.R")
     shell:
         "Rscript {params.plot_script} qc_analysis {wildcards.prefix}"
+
+# generate the summary QC metrics
+rule make_sample_qc_summary:
+    input:
+        samplecoverage="qc_sequencing/{sample}.per_base_coverage.bed",
+        samplevariants="data/{sample}.variants.tsv",
+        sampleqc="data/{sample}.qc.csv"
+    output:
+        "qc_sequencing/{sample}.summary.qc.tsv"
+    params:
+        py_script="get_qc_summary.py"
+    shell:
+        "{params.py_script} --variants {input.samplevariants} --qc {input.sampleqc} --coverage {input.samplecoverage} > {output}"
+
+rule make_full_qc_summary:
+    input:
+        expand("qc_sequencing/{s}.summary.qc.tsv", s=get_sample_names())
+    output:
+        "qc_sequencing/summary_qc.tsv"
+    params:
+        py_script="collect_qc_summary.py"
+    shell:
+        "{params.py_script} --path qc_sequencing > {output}"
