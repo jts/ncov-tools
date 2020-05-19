@@ -94,7 +94,7 @@ rule all_qc_analysis:
     input:
         get_qc_analysis_plots
 
-rule qc_summary_all:
+rule all_qc_summary:
     input:
         "qc_sequencing/summary_qc.tsv"
 
