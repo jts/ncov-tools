@@ -64,7 +64,7 @@ def get_tree_plot_input(wildcards):
 
     input_list = ["qc_analysis/{prefix}_tree.nwk", "qc_analysis/{prefix}_alleles.tsv"]
     if "assign_lineages" in config and config["assign_lineages"]:
-        input_list.append("qc_analysis/{prefix}_lineage_report.csv")
+        input_list.append("lineages/{prefix}_lineage_report.csv")
     return input_list
 
 def get_qc_sequencing_plots(wildcards):
@@ -84,6 +84,10 @@ def get_qc_analysis_plots(wildcards):
         out.append("plots/%s_genome_completeness_by_ct.pdf" % (prefix))
     return out
 
+def get_qc_summary(wildcards):
+    prefix = get_run_name()
+    return "qc_analysis/%s_summary_qc.tsv" % (prefix)
+
 #
 # top-level rules
 #
@@ -97,7 +101,7 @@ rule all_qc_analysis:
 
 rule all_qc_summary:
     input:
-        "qc_sequencing/summary_qc.tsv"
+        get_qc_summary
 
 #
 # generate coverage QC data using bedtools
@@ -226,7 +230,7 @@ rule make_lineage_assignments:
     input:
         "qc_analysis/{prefix}_consensus.fasta"
     output:
-        "qc_analysis/{prefix}_lineage_report.csv"
+        "lineages/{prefix}_lineage_report.csv"
     threads: workflow.cores
     shell:
         "pangolin -t {threads} --outfile {output} {input}"
@@ -302,7 +306,7 @@ rule make_sample_qc_summary:
         samplevariants="data/{sample}.variants.tsv",
         sampleqc="data/{sample}.qc.csv"
     output:
-        "qc_sequencing/{sample}.summary.qc.tsv"
+        "qc_analysis/{sample}.summary.qc.tsv"
     params:
         py_script="get_qc_summary.py"
     shell:
@@ -310,10 +314,10 @@ rule make_sample_qc_summary:
 
 rule make_full_qc_summary:
     input:
-        expand("qc_sequencing/{s}.summary.qc.tsv", s=get_sample_names())
+        expand("qc_analysis/{s}.summary.qc.tsv", s=get_sample_names())
     output:
-        "qc_sequencing/summary_qc.tsv"
+        "qc_analysis/{prefix}_summary_qc.tsv"
     params:
         py_script="collect_qc_summary.py"
     shell:
-        "{params.py_script} --path qc_sequencing > {output}"
+        "{params.py_script} --path qc_analysis > {output}"
