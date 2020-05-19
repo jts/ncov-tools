@@ -79,6 +79,11 @@ snakemake -s qc/Snakefile all_qc_analysis
 
 The results will be placed in the `plots` directory.
 
+To generate a `tsv` file of QC metrics per sample:
+```
+snakemake -s qc/Snakefile all_qc_summary
+```
+
 ## Credit and Acknowledgements
 
 The tree-with-SNPs plot was inspired by a plot shared by Mads Albertsen.
