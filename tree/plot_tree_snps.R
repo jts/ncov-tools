@@ -13,7 +13,7 @@ scale_y_tree <- function(expand=expand_scale(0, 0.6), ...){
 }
 
 # 
-plot_tree_with_snps <- function(tree, alleles)
+plot_tree_with_snps <- function(tree, alleles, lineage_path)
 {
   require(ggtree)
   require(ggplot2)
@@ -58,10 +58,9 @@ plot_tree_with_snps <- function(tree, alleles)
     scale_fill_manual(name="Variant", values=cols, drop=FALSE)
   
   # if a lineage file exists, annotate lineages on the plot
-  lineage_fn <- "lineage_report.csv"
-  if(file.exists(lineage_fn)) { 
+  if(file.exists(lineage_path)) { 
      lineage <- read.csv(
-          file=lineage_fn,
+          file=lineage_path,
           header=TRUE,
           as.is=TRUE,
           quote="\"")
@@ -95,23 +94,21 @@ require(ggtree)
 if(!interactive()) {
     args = commandArgs(trailingOnly=TRUE)
 
-    # default to nextstrain structure
-    data_dir <- "results"
-    tree_fn <- "tree.nwk"
-    prefix <- "default"
-    if(length(args) == 2) {
-        data_dir <- args[1]
-        prefix <- args[2]
+    if(length(args) < 3) {
+        q()
     }
 
-    tree_path = paste(data_dir, tree_fn, sep="/")
-    tree <- read.tree(tree_path)
-    
-    alleles_path = paste(data_dir, "alleles.tsv", sep="/")
-    alleles <- read.table(alleles_path, header=T)
-    p <- plot_tree_with_snps(tree, alleles)
+    plot_path <- args[1]
+    tree_path <- args[2]
+    alleles_path <- args[3]
+    lineage_path = ""
+    if(length(args) == 4) {
+        lineage_path = args[4]
+    }
 
-    plot_path = sprintf("plots/%s_tree_snps.pdf", prefix)
+    tree <- read.tree(tree_path)
+    alleles <- read.table(alleles_path, header=T)
+    p <- plot_tree_with_snps(tree, alleles, lineage_path)
     
     # count number of samples, for scaling the plot
     d = fortify(tree)
@@ -119,5 +116,5 @@ if(!interactive()) {
     num_samples = nrow(d)
     pdf_height = 0.125 * num_samples
     pdf_height = max(8, pdf_height)
-    ggsave(plot_path, p, height=pdf_height, width=20)
+    ggsave(plot_path, p, height=pdf_height, width=20, limitsize=FALSE)
 }
