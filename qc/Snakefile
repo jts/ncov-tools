@@ -304,13 +304,14 @@ rule make_sample_qc_summary:
     input:
         samplecoverage="qc_sequencing/{sample}.per_base_coverage.bed",
         samplevariants="data/{sample}.variants.tsv",
-        sampleqc="data/{sample}.qc.csv"
+        sampleqc="data/{sample}.qc.csv",
+        metadata=get_metadata_file
     output:
         "qc_analysis/{sample}.summary.qc.tsv"
     params:
         py_script="get_qc_summary.py"
     shell:
-        "{params.py_script} --variants {input.samplevariants} --qc {input.sampleqc} --coverage {input.samplecoverage} > {output}"
+        "{params.py_script} --variants {input.samplevariants} --qc {input.sampleqc} --coverage {input.samplecoverage} --meta {input.metadata} --indel > {output}"
 
 rule make_full_qc_summary:
     input:
