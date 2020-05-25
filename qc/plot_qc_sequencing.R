@@ -1,10 +1,10 @@
 plot_depth_by_amplicon <- function(df, outname)
 {
-    ggplot(df, aes(x=sample, y=mean_coverage)) + 
+    ggplot(df, aes(x=sample, y=mean_coverage)) +
         geom_point() +
-        scale_y_log10() + 
-        facet_wrap(. ~ amplicon_id) + 
-        theme_bw() + 
+        scale_y_log10() +
+        facet_wrap(. ~ amplicon_id) +
+        theme_bw() +
         theme(axis.text.x = element_text(angle = 90, hjust = 1))
 
         ggsave(outname, width=15, height=10)
@@ -12,16 +12,16 @@ plot_depth_by_amplicon <- function(df, outname)
 
 plot_depth_by_amplicon_and_ct <- function(df, metadata, outname)
 {
-    # merge df with metadata   
+    # merge df with metadata
     merged = dplyr::inner_join(df, metadata, by = "sample")
 
     summary <- merged %>% group_by(sample, amplicon_id, ct)  %>% summarise(mean_coverage=mean(depth))
 
-    ggplot(summary, aes(x=ct, y=mean_coverage)) + 
+    ggplot(summary, aes(x=ct, y=mean_coverage)) +
         geom_point() +
-        scale_y_log10() + 
-        facet_wrap(. ~ amplicon_id) + 
-        theme_bw() + 
+        scale_y_log10() +
+        facet_wrap(. ~ amplicon_id) +
+        theme_bw() +
         theme(axis.text.x = element_text(angle = 90, hjust = 1))
 
         ggsave(outname, width=15, height=10)
@@ -29,10 +29,10 @@ plot_depth_by_amplicon_and_ct <- function(df, metadata, outname)
 
 plot_fraction_covered_by_amplicon <- function(df, outname)
 {
-    ggplot(df, aes(x=sample, y=fraction_covered)) + 
+    ggplot(df, aes(x=sample, y=fraction_covered)) +
         geom_point() +
-        facet_wrap(. ~ amplicon_id) + 
-        theme_bw() + 
+        facet_wrap(. ~ amplicon_id) +
+        theme_bw() +
         theme(axis.text.x = element_text(angle = 90, hjust = 1))
 
         ggsave(outname, width=15, height=10)
@@ -40,7 +40,7 @@ plot_fraction_covered_by_amplicon <- function(df, outname)
 
 plot_depth_per_base <- function(df, metadata, outname)
 {
-    # merge df with metadata   
+    # merge df with metadata
     merged = dplyr::full_join(df, metadata, by = "sample")
 
     # construct new column containing the facet label
@@ -54,10 +54,10 @@ plot_depth_per_base <- function(df, metadata, outname)
     for(i in seq(1, ceiling(num_samples / plots_per_page))) {
         # bedtools coverage reports the position along the interval, adding start gives
         # us the position along the genome
-        p <- ggplot(merged, aes(x=start + position, y=depth)) + 
+        p <- ggplot(merged, aes(x=start + position, y=depth)) +
             geom_line() +
-            scale_y_log10() + 
-            facet_wrap_paginate(. ~ label, nrow=8, ncol=1, page=i) + 
+            scale_y_log10() +
+            facet_wrap_paginate(. ~ label, nrow=8, ncol=1, page=i) +
             xlab("Genome position (nt)") +
             theme_bw()
         print(p)
@@ -72,9 +72,9 @@ plot_alt_frequency <- function(df, outname)
     plots_per_page = 8
 
     for(i in seq(1, ceiling(num_samples / plots_per_page))) {
-        p <- ggplot(df, aes(x=position, y=alt_frequency, color=depth)) + 
+        p <- ggplot(df, aes(x=position, y=alt_frequency, color=depth)) +
             geom_line() +
-            facet_wrap_paginate(. ~ sample, nrow=plots_per_page, ncol=1, page=i) + 
+            facet_wrap_paginate(. ~ sample, nrow=plots_per_page, ncol=1, page=i) +
             #scale_colour_gradient(low = "white", high = "black") +
             xlab("Genome position (nt)") +
             ylab("Alt Frequency") +
@@ -86,7 +86,7 @@ plot_alt_frequency <- function(df, outname)
 
 plot_genome_completeness_by_ct <- function(df, metadata, outname)
 {
-    # merge df with metadata   
+    # merge df with metadata
     merged = dplyr::inner_join(df, metadata, by = "sample")
 
     ggplot(merged, aes(x=ct, y=pct_covered_bases)) +
@@ -96,7 +96,7 @@ plot_genome_completeness_by_ct <- function(df, metadata, outname)
         ylim(0, 100) +
         theme_bw() +
         theme(axis.text.x = element_text(angle = 90, hjust = 1))
-        
+
         ggsave(outname, width=12, height=8)
 }
 
@@ -145,23 +145,23 @@ if(!interactive()) {
                           ct=double())
 
     if(length(args) == 3) {
-        metadata.raw <- read.table(args[3], header=T)
-        
+        metadata.raw <- read.table(args[3], header=T, sep="\t")
+
         # clean metadata of unknown Cts
         metadata = subset(metadata.raw, ct != "unknown")
-    
+
         # convert Cts to numeric
         metadata$ct = as.numeric(as.character(metadata$ct))
     }
 
     if(command == "depth_by_position") {
-        
+
         df <- read_glob("qc_sequencing", "*.per_base_coverage.bed")
         outname = sprintf("plots/%s_depth_by_position.pdf", prefix)
         plot_depth_per_base(df, metadata, outname)
 
     } else if(command == "amplicon_depth_by_ct") {
-        
+
         df <- read_glob("qc_sequencing", "*.per_base_coverage.bed")
         outname = sprintf("plots/%s_amplicon_depth_by_ct.pdf", prefix)
         plot_depth_by_amplicon_and_ct(df, metadata, outname)
@@ -173,7 +173,7 @@ if(!interactive()) {
         plot_fraction_covered_by_amplicon(df, outname)
 
     } else if(command == "alt_allele_frequency") {
- 
+
         df <- read_glob("qc_sequencing", "*.fpileup.tsv")
         outname = sprintf("plots/%s_alt_frequency.pdf", prefix)
         plot_alt_frequency(df, outname)
