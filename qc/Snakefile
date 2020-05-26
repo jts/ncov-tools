@@ -71,7 +71,7 @@ def get_qc_sequencing_plots(wildcards):
     prefix = get_run_name()
     out = [ "plots/%s_amplicon_covered_fraction.pdf" % (prefix),
             "plots/%s_depth_by_position.pdf" % (prefix) ]
-    
+
     # add plots that need Ct values
     if get_metadata_file(wildcards) != "":
         out.append("plots/%s_amplicon_depth_by_ct.pdf" % (prefix))
@@ -87,6 +87,13 @@ def get_qc_analysis_plots(wildcards):
 def get_qc_summary(wildcards):
     prefix = get_run_name()
     return "qc_analysis/%s_summary_qc.tsv" % (prefix)
+
+def get_qc_summary_metadata_opt(wildcards):
+    metadata = get_metadata_file(wildcards)
+    if metadata != "":
+        return "--meta %s" % (metadata)
+    else:
+        return ""
 
 #
 # top-level rules
@@ -305,13 +312,13 @@ rule make_sample_qc_summary:
         samplecoverage="qc_sequencing/{sample}.per_base_coverage.bed",
         samplevariants="data/{sample}.variants.tsv",
         sampleqc="data/{sample}.qc.csv",
-        metadata=get_metadata_file
     output:
         "qc_analysis/{sample}.summary.qc.tsv"
     params:
-        py_script="get_qc_summary.py"
+        py_script="get_qc_summary.py",
+        metadata_opt=get_qc_summary_metadata_opt
     shell:
-        "{params.py_script} --variants {input.samplevariants} --qc {input.sampleqc} --coverage {input.samplecoverage} --meta {input.metadata} --indel > {output}"
+        "{params.py_script} --variants {input.samplevariants} --qc {input.sampleqc} --coverage {input.samplecoverage} {params.metadata_opt} --indel > {output}"
 
 rule make_full_qc_summary:
     input:
