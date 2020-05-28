@@ -41,9 +41,6 @@ def get_sample_names():
             continue
         samples.append(fields[0])
 
-    if len(samples) == 0:
-        print("Error: no samples found")
-        sys.exit(1)
 
     return samples
 
