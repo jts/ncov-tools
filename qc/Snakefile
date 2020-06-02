@@ -41,9 +41,6 @@ def get_sample_names():
             continue
         samples.append(fields[0])
 
-    if len(samples) == 0:
-        print("Error: no samples found")
-        sys.exit(1)
 
     return samples
 
@@ -312,13 +309,14 @@ rule make_sample_qc_summary:
         samplecoverage="qc_sequencing/{sample}.per_base_coverage.bed",
         samplevariants="data/{sample}.variants.tsv",
         sampleqc="data/{sample}.qc.csv",
+        samplefasta="data/{sample}.primertrimmed.consensus.fa"
     output:
         "qc_analysis/{sample}.summary.qc.tsv"
     params:
         py_script="get_qc_summary.py",
         metadata_opt=get_qc_summary_metadata_opt
     shell:
-        "{params.py_script} --variants {input.samplevariants} --qc {input.sampleqc} --coverage {input.samplecoverage} {params.metadata_opt} --indel > {output}"
+        "{params.py_script} --variants {input.samplevariants} --qc {input.sampleqc} --coverage {input.samplecoverage} {params.metadata_opt} --indel --reference {config[reference_genome]} --fasta {input.samplefasta} > {output}"
 
 rule make_full_qc_summary:
     input:
