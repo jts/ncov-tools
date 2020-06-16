@@ -76,7 +76,8 @@ def get_qc_sequencing_plots(wildcards):
 
 def get_qc_analysis_plots(wildcards):
     prefix = get_run_name()
-    out = [ "plots/%s_tree_snps.pdf" % (prefix) ]
+    out = [ "plots/%s_tree_snps.pdf" % (prefix),
+            "plots/%s_amplicon_coverage_heatmap.pdf" % (prefix) ]
     if get_metadata_file(wildcards) != "":
         out.append("plots/%s_genome_completeness_by_ct.pdf" % (prefix))
     return out
@@ -241,6 +242,16 @@ rule make_lineage_assignments:
 #
 # QC plots
 #
+rule make_qc_plot_amplicon_coverage_heatmap:
+    input:
+        expand("qc_sequencing/{s}.per_base_coverage.bed", s=get_sample_names())
+    output:
+        "plots/{prefix}_amplicon_coverage_heatmap.pdf"
+    params:
+        plot_script("plot_amplicon_coverage_heatmap.R")
+    shell:
+        "Rscript {params.plot_script} --path qc_sequencing --output {output}
+
 rule make_qc_plot_depth_by_position:
     input:
         expand("qc_sequencing/{s}.per_base_coverage.bed", s=get_sample_names())
