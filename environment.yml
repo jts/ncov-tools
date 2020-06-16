@@ -11,6 +11,7 @@ dependencies:
   - r-base=3.6.1
   - iqtree<2
   - bioconductor-ggtree=2.0.0
+  - r-argparse
   - r-patchwork=1.0.0
   - r-ggforce=0.3.1
   - bedtools
