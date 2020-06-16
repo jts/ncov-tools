@@ -248,9 +248,9 @@ rule make_qc_plot_amplicon_coverage_heatmap:
     output:
         "plots/{prefix}_amplicon_coverage_heatmap.pdf"
     params:
-        plot_script("plot_amplicon_coverage_heatmap.R")
+        plot_script = srcdir("plot_amplicon_coverage_heatmap.R")
     shell:
-        "Rscript {params.plot_script} --path qc_sequencing --output {output}
+        "Rscript {params.plot_script} --path qc_sequencing --output {output}"
 
 rule make_qc_plot_depth_by_position:
     input:
