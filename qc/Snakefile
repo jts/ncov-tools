@@ -78,6 +78,12 @@ def get_qc_analysis_plots(wildcards):
     prefix = get_run_name()
     out = [ "plots/%s_tree_snps.pdf" % (prefix),
             "plots/%s_amplicon_coverage_heatmap.pdf" % (prefix) ]
+    return out
+
+def get_all_qc_analysis_plots(wildcards):
+    prefix = get_run_name()
+    out = [ "plots/%s_tree_snps.pdf" % (prefix),
+            "plots/%s_amplicon_coverage_heatmap.pdf" % (prefix) ]
     if get_metadata_file(wildcards) != "":
         out.append("plots/%s_genome_completeness_by_ct.pdf" % (prefix))
     return out
@@ -103,6 +109,10 @@ rule all_qc_sequencing:
 rule all_qc_analysis:
     input:
         get_qc_analysis_plots
+
+rule all_qc_analysis_plots:
+    input:
+        get_all_qc_analysis_plots
 
 rule all_qc_summary:
     input:
