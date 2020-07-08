@@ -83,6 +83,7 @@ for(i in 1:nrow(amp_cov_files)) {
 }
 
 ### PROCESS DATA ##################################################################################
+num_samples <- nrow(cov_data)
 cov_data_df <- as.data.frame(cov_data %>% pivot_wider(names_from=amplicon_id, values_from=read_count))
 rownames(cov_data_df) <- cov_data_df$sample
 cov_data_df <- cov_data_df[,2:ncol(cov_data_df)]
@@ -95,7 +96,9 @@ cov_data_df <- log10(cov_data_df)
 
 ### PLOTTING ######################################################################################
 cols <- colorRampPalette(c('#E41A1C', 'white', '#377EB8'))
-pdf(file=args$output)
+pdf_height <- 0.125 * num_samples
+pdf_height <- max(8, pdf_height)
+pdf(file=args$output, height=pdf_height, width=20)
 lattice::levelplot(
   x = as.matrix(t(cov_data_df)),
   col.regions=cols,
