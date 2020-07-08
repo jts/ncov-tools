@@ -5,7 +5,8 @@
 ### HISTORY #######################################################################################
 # Version           Date            Developer               Comments
 # 0.01              2020-06-16      Richard J. de Borja     Initial development
-
+# 0.02              2020-07-09      Richard J. de Borja     Adjusted PDF page height for large
+#                                                           sample numbers
 ### PREAMBLE ######################################################################################
 library(argparse)
 
@@ -86,6 +87,8 @@ for(i in 1:nrow(amp_cov_files)) {
 cov_data_df <- as.data.frame(cov_data %>% pivot_wider(names_from=amplicon_id, values_from=read_count))
 rownames(cov_data_df) <- cov_data_df$sample
 cov_data_df <- cov_data_df[,2:ncol(cov_data_df)]
+num_samples <- nrow(cov_data_df)
+print(paste(sep=' ', 'number of samples: ', num_samples))
 
 # add a pseudo count of 0.01 to fix the log10 0 issue
 cov_data_df <- cov_data_df + 0.01
@@ -95,14 +98,17 @@ cov_data_df <- log10(cov_data_df)
 
 ### PLOTTING ######################################################################################
 cols <- colorRampPalette(c('#E41A1C', 'white', '#377EB8'))
-pdf(file=args$output)
+pdf_height <- 0.075 * num_samples
+pdf_height <- max(8, pdf_height)
+pdf(file=args$output, height=pdf_height, width=10)
 lattice::levelplot(
   x = as.matrix(t(cov_data_df)),
   col.regions=cols,
   scales=list(
     x=list(rot=90),
-    cex=c(0.35,0.35)
+    cex=c(0.45,0.45)
   ),
+  colorkey=list(space="top"),
   xlab="",
   ylab=""
 )
