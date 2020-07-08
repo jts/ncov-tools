@@ -5,7 +5,8 @@
 ### HISTORY #######################################################################################
 # Version           Date            Developer               Comments
 # 0.01              2020-06-16      Richard J. de Borja     Initial development
-
+# 0.02              2020-07-09      Richard J. de Borja     Adjusted PDF page
+#                                                           height
 ### PREAMBLE ######################################################################################
 library(argparse)
 
