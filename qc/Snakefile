@@ -254,7 +254,7 @@ rule make_lineage_assignments:
 #
 rule make_qc_plot_amplicon_coverage_heatmap:
     input:
-        expand("qc_sequencing/{s}.per_base_coverage.bed", s=get_sample_names())
+        expand("qc_sequencing/{s}.amplicon_coverage.bed", s=get_sample_names())
     output:
         "plots/{prefix}_amplicon_coverage_heatmap.pdf"
     params:
