@@ -44,6 +44,9 @@ def get_sample_names():
 
     return samples
 
+def get_negative_control_samples():
+    return config["negative_control_samples"]
+
 def get_bam_for_sample(wildcards):
     bam_pattern = get_bam_pattern()
     return bam_pattern.format(data_root=config["data_root"], sample=wildcards.sample)
@@ -348,3 +351,13 @@ rule make_full_qc_summary:
         py_script="collect_qc_summary.py"
     shell:
         "{params.py_script} --path qc_analysis > {output}"
+
+rule make_negative_control_report:
+    input:
+        expand("qc_sequencing/{s}.per_base_coverage.bed", s=get_negative_control_samples())
+    output:
+        "qc_sequencing/{prefix}_negative_control_report.tsv"
+    params:
+        script=srcdir("negative_control_check.py")
+    shell:
+        "python {params.script} {input} > {output}"
