@@ -41,11 +41,13 @@ def get_sample_names():
             continue
         samples.append(fields[0])
 
-
     return samples
 
 def get_negative_control_samples():
-    return config["negative_control_samples"]
+    if "negative_control_samples" in config:
+        return config["negative_control_samples"]
+    else:
+        return ""
 
 def get_bam_for_sample(wildcards):
     bam_pattern = get_bam_pattern()
