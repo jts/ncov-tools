@@ -39,7 +39,8 @@ for pc in samfile.pileup():
 
     out = list()
     out.append(pc.reference_name)
-    out.append(pc.pos)
+    # output 1-based coordinates for consistency with samtools mpileup
+    out.append(pc.pos + 1)
     out.append(bc_depth + freqs['-'])
     out.append(reference_base)
     out.append(freqs['A'])
