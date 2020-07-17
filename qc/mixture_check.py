@@ -32,27 +32,6 @@ class Variant:
         return str(self.pos) + ":" + self.ref + ">" + self.alt
 
 
-class PileupObservation:
-    def __init__(self, b, q):
-        self.base = b
-        self.quality = q
-
-reference_contig = "MN908947.3"
-#
-def get_obs_at_position(samfile, position):
-    observations = list()
-    # -1 because pileup takes 0-based coordinates
-    for pc in samfile.pileup(contig=reference_contig, start=position - 1, stop=position, truncate=True):
-        for pr in pc.pileups:
-            if pr.indel != 0 or pr.is_refskip or pr.query_position is None:
-                continue
-            else:
-                b = pr.alignment.query_sequence[pr.query_position]
-                q = pr.alignment.query_qualities[pr.query_position]
-                po = PileupObservation(b, q)
-                observations.append(po)
-    return observations
-
 def contam_frac(a, b):
     t = a + b
     c = 0
@@ -71,15 +50,8 @@ def count_alleles(allele_a, allele_b, observations):
             b += 1
     return (a, b)
 
-def count_variant_support_from_bam(bam_file, variants):
-    samfile = pysam.AlignmentFile(bam_file, "rb")
-    out = dict()
-    for var in variants:
-        observations = get_obs_at_position(samfile, var.pos)
-        (count_a, count_b) = count_alleles(var.ref, var.alt, observations)
-        out[var.pos] = { var.ref:count_a, var.alt:count_b }
-    return out
-
+# process an fpileup.tsv file into a dictionary
+# of observed read counts for each variant in the union
 def count_variant_support_from_fpileup(fpileup_file, variants):
     out = dict()
     variants_by_position = defaultdict(list)
@@ -101,28 +73,28 @@ def count_variant_support_from_fpileup(fpileup_file, variants):
                 out[var] = { var.ref:count_a, var.alt:count_b }
     return out
 
+# check a pair of samples for evidence of contamination/mixtures
 def calculate(sample_a, sample_b, variants, counts):
     set_a = set(variants[sample_a])
     set_b = set(variants[sample_b])
 
-    intersection = set_a.intersection(set_b)
+    # the variants we check for evidence of mixture (set_a - set_b) U (set_b - set_a)
     symdiff = set_a.symmetric_difference(set_b)
 
-    #debug
-    #symdiff = intersection
+    # output stats
     total_count_a = 0
     total_count_b = 0
     contaminated_variants = 0
-
     per_site_out = list()
     num_variants = 0
+
+    # check each variant
     for var in symdiff:
 
         # if we don't have a pileup record for this variant it didn't have
         # enough coverage, skip
         if var not in counts[sample_a]:
             continue
-        
         c = counts[sample_a][var]
 
         # assign ref/alt to a or b sample
@@ -138,12 +110,13 @@ def calculate(sample_a, sample_b, variants, counts):
             allele_a = var.ref
             allele_b = var.alt
      
-
+        # look up counts for a and b allele, check depth
         (count_a, count_b) = (c[allele_a], c[allele_b])
         if count_a + count_b < args.min_depth:
             continue
+        num_variants += 1
 
-        num_variants += 1   
+        # calculate mixture proportion
         var_cf = contam_frac(count_a, count_b)
         if var_cf > args.threshold:
             contaminated_variants += 1
@@ -151,11 +124,13 @@ def calculate(sample_a, sample_b, variants, counts):
         total_count_a += count_a
         total_count_b += count_b
 
+    # output if sufficient evidence of mixture
     cf = contam_frac(total_count_a, total_count_b)
     if (num_variants >= args.min_variants and contaminated_variants >= num_variants - 2) or args.show_all:
         site_str = ",".join(per_site_out)
         print("\t".join([str(x) for x in [sample_a, sample_b, num_variants, contaminated_variants, total_count_a, total_count_b, "%.3f" % (cf), site_str]]))
 
+# load variants from the ivar variants.tsv file
 def load_ivar_variants(variants_fn):
     out = list()
     valid_alts = { "A", "C", "G", "T" }
@@ -170,6 +145,7 @@ def load_ivar_variants(variants_fn):
             out.append(v)
     return out
 
+# load observed variants from the output of align2alleles.py
 def load_msa_alleles(alleles_fn):
     out = dict()
     valid_alts = { "A", "C", "G", "T" }
@@ -185,7 +161,8 @@ def load_msa_alleles(alleles_fn):
             if aa in valid_alts:
                 out[sample].append(v)
     return out
-#
+
+# load a map from sample name -> file path from a file-of-filenames (fofn)
 def load_fofn(fofn_fn):
     out = dict()
     with open(fofn_fn) as fh:
@@ -196,6 +173,7 @@ def load_fofn(fofn_fn):
             out[fields[0]] = path
     return out
 
+# 
 parser = argparse.ArgumentParser()
 parser.add_argument('--fpileup-fofn', type=str, default="")
 parser.add_argument('--alleles-tsv', type=str, default="")
@@ -206,7 +184,6 @@ parser.add_argument('--min-variants', type=int, default=4)
 parser.add_argument('--min-depth', type=int, default=10)
 parser.add_argument('--min-allele-frequency', type=float, default=0.0)
 parser.add_argument('--sample', type=str, default="")
-
 args = parser.parse_args()
 
 # read fofn files
@@ -217,7 +194,7 @@ fpileup_files = load_fofn(args.fpileup_fofn)
 # load variants observed in the MSA
 variants = load_msa_alleles(args.alleles_tsv)
 
-# make a set of all variants
+# create the union of variants
 variant_union = set()
 for k,v in variants.items():
     variant_union = variant_union.union(v)
@@ -238,10 +215,12 @@ outer_samples = all_samples
 if args.sample != "":
     outer_samples = [args.sample]
 
+# output header
 print("\t".join(["sample_a", "sample_b", "variants_checked", "variants_mixed", \
                  "read_support_allele_a", "read_support_allele_b", "mixture_fraction", \
                  "mixed_sites"]))
 
+# check all pairs of samples for contamination
 for a_sample in outer_samples:
     for b_sample in all_samples:
         if a_sample == b_sample:
