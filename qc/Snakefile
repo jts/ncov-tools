@@ -333,9 +333,9 @@ rule make_qc_tree_snps:
 rule make_sample_qc_summary:
     input:
         samplecoverage="qc_sequencing/{sample}.per_base_coverage.bed",
-        samplevariants="data/{sample}.variants.tsv",
-        sampleqc="data/{sample}.qc.csv",
-        samplefasta="data/{sample}.primertrimmed.consensus.fa"
+        samplevariants="{config[data_root]}/{sample}.variants.tsv",
+        sampleqc="{config[data_root]}/{sample}.qc.csv",
+        samplefasta="{config[data_root]}/{sample}.primertrimmed.consensus.fa"
     output:
         "qc_analysis/{sample}.summary.qc.tsv"
     params:
