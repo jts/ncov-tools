@@ -12,6 +12,12 @@ def get_bam_pattern():
 def get_consensus_pattern():
     return config.get("consensus_pattern", "{data_root}/{sample}.primertrimmed.consensus.fa")
 
+def get_qc_pattern():
+    return config.get("qc_pattern", "{data_root}/{sample}.qc.csv")
+
+def get_variants_pattern():
+    return config.get("variants_pattern", "{data_root}/{sample}.variants.tsv")
+
 def get_metadata_file(wildcards):
     return config.get("metadata", "")
 
@@ -52,6 +58,18 @@ def get_negative_control_samples():
 def get_bam_for_sample(wildcards):
     bam_pattern = get_bam_pattern()
     return bam_pattern.format(data_root=config["data_root"], sample=wildcards.sample)
+
+def get_variants_for_sample(wildcards):
+    variants_pattern = get_variants_pattern()
+    return variants_pattern.format(data_root=config["data_root"], sample=wildcards.sample)
+
+def get_qc_for_sample(wildcards):
+    qc_pattern = get_qc_pattern()
+    return qc_pattern.format(data_root=config["data_root"], sample=wildcards.sample)
+
+def get_consensus_for_sample(wildcards):
+    consensus_pattern = get_consensus_pattern()
+    return consensus_pattern(data_root=config["data_root"], sample=wildcards.sample)
 
 def get_tree_consensus_sequences(wildcards):
     pattern = get_consensus_pattern()
@@ -333,9 +351,12 @@ rule make_qc_tree_snps:
 rule make_sample_qc_summary:
     input:
         samplecoverage="qc_sequencing/{sample}.per_base_coverage.bed",
-        samplevariants="{config[data_root]}/{sample}.variants.tsv",
-        sampleqc="{config[data_root]}/{sample}.qc.csv",
-        samplefasta="{config[data_root]}/{sample}.primertrimmed.consensus.fa"
+        # samplevariants="{config[data_root]}/{sample}.variants.tsv",
+        samplevariants=get_variants_for_sample,
+        # sampleqc="{config[data_root]}/{sample}.qc.csv",
+        sampleqc=get_qc_for_sample,
+        # samplefasta="{config[data_root]}/{sample}.primertrimmed.consensus.fa"
+        samplefasta=get_consensus_for_sample
     output:
         "qc_analysis/{sample}.summary.qc.tsv"
     params:
