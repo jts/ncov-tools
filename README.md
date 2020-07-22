@@ -54,6 +54,10 @@ consensus_pattern: "{data_root}/{sample}.consensus.fasta"
 # in the tree by providing a fasta file here
 tree_include_consensus: some_genomes_from_gisaid.fasta
 
+# to create the QC summary file, provide the naming convention for the qc.csv and variants.tsv files
+variants_pattern: "{data_root}/{sample}.variants.tsv"
+qc_pattern: "{data_root}/{sample}.qc.csv"
+
 # some plots can by annotated with external metadata. this
 # file contains the metadata in simple tab-delimited format
 # one column must be 'sample'
