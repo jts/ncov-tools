@@ -58,7 +58,7 @@ def count_variant_support_from_fpileup(fpileup_file, variants):
 
     for v in variants:
         variants_by_position[v.pos].append(v)
-    
+
     with open(fpileup_file) as f:
         reader = csv.DictReader(f, delimiter="\t")
         for record in reader:
@@ -73,13 +73,22 @@ def count_variant_support_from_fpileup(fpileup_file, variants):
                 out[var] = { var.ref:count_a, var.alt:count_b }
     return out
 
+# if the sample has an entry for the input var, return the consensus allele
+# otherwise return reference
+def assign_allele(var, sample, variants):
+    if var in variants[sample]:
+        return variants[sample][var]
+    else:
+        return var.ref
+
 # check a pair of samples for evidence of contamination/mixtures
 def calculate(sample_a, sample_b, variants, counts):
-    set_a = set(variants[sample_a])
-    set_b = set(variants[sample_b])
 
-    # the variants we check for evidence of mixture (set_a - set_b) U (set_b - set_a)
-    symdiff = set_a.symmetric_difference(set_b)
+    union = dict()
+    for v in variants[sample_a]:
+        union[v] = 1
+    for v in variants[sample_b]:
+        union[v] = 1
 
     # output stats
     total_count_a = 0
@@ -87,39 +96,43 @@ def calculate(sample_a, sample_b, variants, counts):
     contaminated_variants = 0
     per_site_out = list()
     num_variants = 0
+    alleles_by_position = dict()
+    for var in union:
+        # assign alleles to each sample
+        allele_b = assign_allele(var, sample_b, variants)
+        allele_a = assign_allele(var, sample_a, variants)
 
-    # check each variant
-    for var in symdiff:
+        # if B has an IUPAC code it is impossible to resolve - skip this position
+        if allele_b not in "ACGT":
+            continue
 
-        # if we don't have a pileup record for this variant it didn't have
-        # enough coverage, skip
+        # if A is an IUPAC code, resolve to the non-B allele
+        allele_a = resolve_iupac(allele_a, allele_b)
+
+        # skip non-informative positions
+        if allele_a == allele_b:
+            continue
+
+        # skip positions without any depth
         if var not in counts[sample_a]:
             continue
-        c = counts[sample_a][var]
 
-        # assign ref/alt to a or b sample
-        allele_a = None
-        allele_b = None
-        if var in set_a:
-            assert(var not in set_b)
-            allele_a = var.alt
-            allele_b = var.ref
-        else:
-            assert(var in set_b)
-            assert(var not in set_a)
-            allele_a = var.ref
-            allele_b = var.alt
-     
+        c = counts[sample_a][var]
         # look up counts for a and b allele, check depth
         (count_a, count_b) = (c[allele_a], c[allele_b])
+
         if count_a + count_b < args.min_depth:
             continue
+
+        # informative variant, count it
         num_variants += 1
 
         # calculate mixture proportion
         var_cf = contam_frac(count_a, count_b)
         if var_cf > args.threshold:
             contaminated_variants += 1
+        #print(var.pos, allele_a, count_a, allele_b, count_b, var_cf)
+
         per_site_out.append(str(var) + ":" + "%.3f" % (var_cf))
         total_count_a += count_a
         total_count_b += count_b
@@ -145,21 +158,48 @@ def load_ivar_variants(variants_fn):
             out.append(v)
     return out
 
+iupac_map = { "M": ["A", "C"],
+              "R": ["A", "G"],
+              "W": ["A", "T"],
+              "S": ["C", "G"],
+              "Y": ["C", "T"],
+              "K": ["G", "T"] }
+
+# given an IUPAC code (like Y) and a fixed other base (like C) return the other base (T)
+def resolve_iupac(code, fixed_base):
+    if code in ["A", "C", "G", "T"]:
+        return code # not ambiguous
+    if code in iupac_map:
+        (a, b) = iupac_map[code]
+        if a == fixed_base:
+            return b
+        elif b == fixed_base:
+            return a
+        else:
+            assert(False)
+            return None
+    else:
+        return None
+        # triallelic
+        assert(False)
+
 # load observed variants from the output of align2alleles.py
 def load_msa_alleles(alleles_fn):
     out = dict()
-    valid_alts = { "A", "C", "G", "T" }
     with open(alleles_fn) as fh:
         reader = csv.DictReader(fh, delimiter='\t')
         for row in reader:
             sample = row['name'].replace("Consensus_", "")
             if sample not in out:
-                out[sample] = list()
+                out[sample] = dict()
             ra = row['ref_allele']
-            aa = row['alt_allele']
-            v = Variant("contig", int(row['pos']), row['ref_allele'], row['alt_allele'])
-            if aa in valid_alts:
-                out[sample].append(v)
+            ca = row['alt_allele'] # consensus allele, can be ambiguous
+            if ca == "N":
+                continue
+            aa = resolve_iupac(ca, ra)
+
+            v = Variant("contig", int(row['pos']), ra, aa)
+            out[sample][v] = ca
     return out
 
 # load a map from sample name -> file path from a file-of-filenames (fofn)
@@ -194,10 +234,17 @@ fpileup_files = load_fofn(args.fpileup_fofn)
 # load variants observed in the MSA
 variants = load_msa_alleles(args.alleles_tsv)
 
+# count variants and remove singletons
+var_count = defaultdict(int)
+for sample in variants:
+    for var in variants[sample]:
+        var_count[var] += 1
+
 # create the union of variants
 variant_union = set()
-for k,v in variants.items():
-    variant_union = variant_union.union(v)
+for var, count in var_count.items():
+    if count >= 1:
+        variant_union.add(var)
 
 # count bases at each variant position for each sample
 all_samples = variants.keys()
