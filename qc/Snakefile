@@ -368,13 +368,13 @@ rule make_fpileups_fofn:
     input:
         expand("qc_sequencing/{s}.fpileup.tsv", s=get_sample_names())
     output:
-        "qc_sequence/{prefix}_fpileups.fofn",
+        "qc_sequencing/{prefix}_fpileups.fofn",
     shell:
         'echo {input} | tr " " "\\n" > {output}'
 
 rule make_mixture_report:
     input:
-        fpileups="qc_sequence/{prefix}_fpileups.fofn",
+        fpileups="qc_sequencing/{prefix}_fpileups.fofn",
         alleles="qc_analysis/{prefix}_alleles.tsv"
     output:
         "qc_analysis/{prefix}_mixture_report.tsv"
