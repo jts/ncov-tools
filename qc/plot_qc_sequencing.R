@@ -41,7 +41,7 @@ plot_fraction_covered_by_amplicon <- function(df, outname)
 plot_depth_per_base <- function(df, metadata, outname)
 {
     # merge df with metadata
-    merged = dplyr::full_join(df, metadata, by = "sample")
+    merged = dplyr::left_join(df, metadata, by = "sample")
 
     # construct new column containing the facet label
     merged$label = paste(merged$sample, " Ct: ", merged$ct, sep="")
