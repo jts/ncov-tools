@@ -11,7 +11,7 @@ samfile = pysam.AlignmentFile(args.bam, "rb")
 reference = pysam.FastaFile(args.reference_genome)
 
 print("\t".join(["contig", "position", "depth", "ref_base", "count_A", "count_C", "count_G", "count_T", "count_del", "alt_frequency"]))
-for pc in samfile.pileup():
+for pc in samfile.pileup(ignore_orphans=False):
     freqs = {'A': 0, 'T': 0, 'G': 0, 'C': 0, '-': 0, 'R': 0 }
     for pr in pc.pileups:
         if pr.is_del:
