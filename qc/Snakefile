@@ -113,9 +113,9 @@ def get_variants(wildcards):
     else:
         return ""
 
-def get_platform(wildcards):
+def get_platform_opt(wildcards):
     if "platform" in config:
-        return "--platform {config['platform']"
+        return "--platform %s" % (config['platform'])
     else:
         return ""
 
@@ -127,6 +127,10 @@ def get_consensus(wildcards):
             return "data/{sample}.primertrimmed.consensus.fa"
     else:
         return ""
+
+def get_run_alleles(wildcards):
+    rn = get_run_name()
+    return "qc_analysis/%s_alleles.tsv" % (rn)
 
 #
 # top-level rules
@@ -356,18 +360,18 @@ rule make_qc_tree_snps:
 # generate the summary QC metrics
 rule make_sample_qc_summary:
     input:
-        alleles="qc_analysis/{prefix}_alleles.tsv",
+        alleles=get_run_alleles,
         samplecoverage="qc_sequencing/{sample}.per_base_coverage.bed",
-        samplevariants=get_variants(),
-        sampleconsensus=get_consensus(),
-        platform=get_platform()
+        samplevariants=get_variants,
+        sampleconsensus=get_consensus
     output:
         "qc_analysis/{sample}.summary.qc.tsv"
     params:
         py_script="get_qc.py",
-        metadata_opt=get_qc_summary_metadata_opt
+        metadata_opt=get_qc_summary_metadata_opt,
+        platform_opt=get_platform_opt
     shell:
-        "{params.py.script} --alleles {input.alleles} --coverage {input.samplecoverage} --variants {input.samplevariants} {params.metadata_opt} --indel --consensus {input.sampleconsensus} --platform {input.platform} --sample {sample} > {output}"
+        "{params.py_script} --alleles {input.alleles} --coverage {input.samplecoverage} --variants {input.samplevariants} {params.metadata_opt} --indel --consensus {input.sampleconsensus} {params.platform_opt} --sample {wildcards.sample} > {output}"
 
 rule make_full_qc_summary:
     input:
