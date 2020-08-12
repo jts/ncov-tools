@@ -4,10 +4,23 @@ Various tools and QC plots for working with coronavirus sequencing data.
 
 ## Installation
 
-To use this package, install the dependencies using conda:
+Download the package:
+```
+git clone git@github.com:jts/ncov-tools.git
+cd ncov-tools
+```
 
+To use this package, install the dependencies using conda:
 ```
 conda env create -f environment.yml
+```
+
+Activate the conda package and install the `parser` package:
+```
+conda activate ncov-qc
+cd parser
+pip install -r requirements.txt
+pip install .
 ```
 
 ## Configuration
@@ -63,6 +76,12 @@ metadata: metadata.tsv
 # set this flag to true to include lineage assignments with pangolin in the output plots
 #
 assign_lineages: true
+
+#
+# this flag should identify the sequencing platform used, valid options are:
+# `illumina` or `oxford-nanopore`
+#
+platform: illumina
 ```
 
 ## Running
@@ -81,7 +100,7 @@ The results will be placed in the `plots` directory.
 
 To generate a `tsv` file of QC metrics per sample:
 ```
-snakemake -s qc/Snakefile all_qc_summary
+snakemake -s qc/Snakefile all_qc_summary --cores 1
 ```
 
 ## Credit and Acknowledgements
