@@ -21,7 +21,6 @@ def write_qc_summary(summary):
         * median_sequencing_depth
         * qpcr_ct
         * collection_date
-        * num_months
         * num_weeks
         * genome_completeness
         * qc_pass
@@ -44,7 +43,6 @@ def write_qc_summary(summary):
         str(summary['median_sequencing_depth']),
         str(summary['qpcr_ct']),
         str(summary['collection_date']),
-        str(summary['num_months']),
         str(summary['num_weeks']),
         str(summary['genome_completeness']),
         str(summary['qc_pass'])])
@@ -62,7 +60,6 @@ def write_qc_summary_header(header=['sample',
                                     'median_sequencing_depth',
                                     'qpcr_ct',
                                     'collection_date',
-                                    'num_months',
                                     'num_weeks',
                                     'genome_completeness',
                                     'qc_pass']):
