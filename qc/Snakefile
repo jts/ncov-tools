@@ -104,6 +104,30 @@ def get_qc_summary_metadata_opt(wildcards):
     else:
         return ""
 
+def get_variants(wildcards):
+    if "platform" in config:
+        if config['platform'] == 'oxford-nanopore':
+            return "data/{sample}.pass.vcf.gz"
+        elif config['platform'] == 'illumina':
+            return "data/{sample}.variants.tsv"
+    else:
+        return ""
+
+def get_platform(wildcards):
+    if "platform" in config:
+        return "--platform {config['platform']"
+    else:
+        return ""
+
+def get_consensus(wildcards):
+    if "platform" in config:
+        if config['platform'] == 'oxford-nanopore':
+            return "data/{sample}.consensus.fasta"
+        elif config['platform'] == 'illumina':
+            return "data/{sample}.primertrimmed.consensus.fa"
+    else:
+        return ""
+
 #
 # top-level rules
 #
@@ -332,17 +356,18 @@ rule make_qc_tree_snps:
 # generate the summary QC metrics
 rule make_sample_qc_summary:
     input:
+        alleles="qc_analysis/{prefix}_alleles.tsv",
         samplecoverage="qc_sequencing/{sample}.per_base_coverage.bed",
-        samplevariants="data/{sample}.variants.tsv",
-        sampleqc="data/{sample}.qc.csv",
-        samplefasta="data/{sample}.primertrimmed.consensus.fa"
+        samplevariants=get_variants(),
+        sampleconsensus=get_consensus(),
+        platform=get_platform()
     output:
         "qc_analysis/{sample}.summary.qc.tsv"
     params:
-        py_script="get_qc_summary.py",
+        py_script="get_qc.py",
         metadata_opt=get_qc_summary_metadata_opt
     shell:
-        "{params.py_script} --variants {input.samplevariants} --qc {input.sampleqc} --coverage {input.samplecoverage} {params.metadata_opt} --indel --reference {config[reference_genome]} --fasta {input.samplefasta} > {output}"
+        "{params.py.script} --alleles {input.alleles} --coverage {input.samplecoverage} --variants {input.samplevariants} {params.metadata_opt} --indel --consensus {input.sampleconsensus} --platform {input.platform} --sample {sample} > {output}"
 
 rule make_full_qc_summary:
     input:
