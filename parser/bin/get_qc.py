@@ -22,11 +22,11 @@ parser.add_argument('-a', '--alleles',
                     help='full path to the alleles.tsv file')
 parser.add_argument('-s', '--sample',
                     help='name of sample being processed')
-parser.add_argument('-n', '--instrument', default='illumina',
-                    help='sequencing instrument technology used')
+parser.add_argument('-p', '--platform', default='illumina',
+                    help='sequencing platform used')
 if len(sys.argv) == 1:
     parser.print_help(sys.stderr)
-    sys.exit(1)
+    sys.exit('Invalid number of arguments')
 args = parser.parse_args()
 
 qc_line = dict()
@@ -40,18 +40,18 @@ except:
     qc_line.update({'qpcr_ct' : 'NA', 'collection_date' : 'NA',
                     'num_months' : 'NA', 'num_weeks' : 'NA'})
 
-if args.instrument == 'illumina':
+if args.platform == 'illumina':
     if str(args.variants).endswith('.variants.tsv'):
         vars = ncov.parser.Variants(file=args.variants)
         qc_line.update(vars.get_total_variants())
     else:
         sys.exit('Must be a valid variant.tsv file for the Illumina platform')
-elif args.instrument == 'ont':
+elif args.platform == 'oxford-nanopore':
     if str(args.variants).endswith('.vcf'):
         vars = ncov.parser.Vcf(file=args.variants)
         qc_line.update(vars.get_variant_counts())
     else:
-        sys.exit('Must be a valid VCF file for the ONT platform')
+        sys.exit('Must be a valid VCF file for the Oxford-Nanopore platform')
 
 alleles = ncov.parser.Alleles(file=args.alleles)
 qc_line.update(alleles.get_variant_counts(sample=args.sample))
