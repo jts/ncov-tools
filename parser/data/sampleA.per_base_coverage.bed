@@ -1,0 +1,8 @@
+reference_name	start	end	amplicon_id	pool	strand	position	depth
+ref	54	385	1	amp_1	+	1	636
+ref	54	385	1	amp_1	+	2	658
+ref	54	385	1	amp_1	+	3	672
+ref	54	385	1	amp_1	+	4	682
+ref	54	385	1	amp_1	+	5	688
+ref	54	385	1	amp_1	+	6	691
+ref	54	385	1	amp_1	+	7	729
