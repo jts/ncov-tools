@@ -28,6 +28,7 @@ class Alleles():
             for record in csv_reader:
                 samplename = re.sub('^Consensus_', '', record['name'])
                 samplename = re.sub('/ARTIC/nanopolish', '', record['name'])
+                samplename = re.sub('/ARTIC/medaka', '', record['name'])
                 if samplename not in self.data:
                     self.data[samplename] = {record['pos'] : {
                         'ref' : record['ref_allele'],
