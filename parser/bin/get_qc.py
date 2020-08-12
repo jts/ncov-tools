@@ -53,6 +53,7 @@ elif args.platform == 'oxford-nanopore':
     else:
         sys.exit('Must be a valid VCF file for the Oxford-Nanopore platform')
 
+
 alleles = ncov.parser.Alleles(file=args.alleles)
 qc_line.update(alleles.get_variant_counts(sample=args.sample))
 
@@ -62,7 +63,26 @@ qc_line.update(cons.get_genome_completeness())
 
 coverage = ncov.parser.PerBaseCoverage(file=args.coverage)
 qc_line.update(coverage.get_coverage_stats())
-qc_line.update({'qc_pass' : 'NA'})
+
+# Produce warning flags
+qc_flags = list()
+if qc_line['genome_completeness'] < 0.5:
+    qc_flags.append("INCOMPLETE_GENOME")
+elif qc_line['genome_completeness'] < 0.9:
+    qc_flags.append("PARTIAL_GENOME")
+
+num_indel_non_triplet = qc_line['num_variants_indel'] - qc_line['num_variants_indel_triplet']
+if num_indel_non_triplet > 0:
+    qc_flags.append("POSSIBLE_FRAMESHIFT_INDELS")
+
+if qc_line['num_consensus_iupac'] > 5:
+    qc_flags.append("EXCESS_AMBIGUITY")
+
+qc_flag_str = "PASS"
+if len(qc_flags) > 0:
+    qc_flag_str = ",".join(qc_flags)
+
+qc_line.update({'qc_pass' : qc_flag_str})
 
 qc.write_qc_summary_header()
 qc.write_qc_summary(summary=qc_line)
