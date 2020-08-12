@@ -27,8 +27,8 @@ class Alleles():
             csv_reader = csv.DictReader(file_p, delimiter=self.delimiter)
             for record in csv_reader:
                 samplename = re.sub('^Consensus_', '', record['name'])
-                samplename = re.sub('/ARTIC/nanopolish', '', record['name'])
-                samplename = re.sub('/ARTIC/medaka', '', record['name'])
+                samplename = re.sub('/ARTIC/nanopolish', '', samplename)
+                samplename = re.sub('/ARTIC/medaka', '', samplename)
                 if samplename not in self.data:
                     self.data[samplename] = {record['pos'] : {
                         'ref' : record['ref_allele'],
