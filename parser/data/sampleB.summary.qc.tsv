@@ -1,0 +1,2 @@
+sample_name	pct_n_bases	pct_covered_bases	total_variants	total_snv	total_indel	total_n	total_iupac	mean_depth	median_depth	ct	qc_pass
+sampleB	31.29	68.01	10	9	1	2	4	679.4285714285714	682	17.4	FALSE
