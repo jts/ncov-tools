@@ -23,6 +23,7 @@ def write_qc_summary(summary):
         * qpcr_ct
         * collection_date
         * num_weeks
+        * scaled_variants
         * genome_completeness
         * qc_pass
 
@@ -46,6 +47,7 @@ def write_qc_summary(summary):
         str(summary['qpcr_ct']),
         str(summary['collection_date']),
         str(summary['num_weeks']),
+        str(summary['scaled_variants']),
         str(summary['genome_completeness']),
         str(summary['qc_pass'])])
     print(summary_line)
@@ -56,7 +58,7 @@ def write_qc_summary_header(header=['sample',
                                     'num_consensus_snvs',
                                     'num_consensus_n',
                                     'num_consensus_iupac',
-                                    'num_variants_snv',
+                                    'num_variants_snvs',
                                     'num_variants_indel',
                                     'num_variants_indel_triplet',
                                     'mean_sequencing_depth',
@@ -64,6 +66,7 @@ def write_qc_summary_header(header=['sample',
                                     'qpcr_ct',
                                     'collection_date',
                                     'num_weeks',
+                                    'scaled_variants',
                                     'genome_completeness',
                                     'qc_pass']):
     '''

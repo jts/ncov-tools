@@ -80,6 +80,25 @@ if num_indel_non_triplet > 0:
 if qc_line['num_consensus_iupac'] > 5:
     qc_flags.append("EXCESS_AMBIGUITY")
 
+# Calculate number of variants per week, while accounting for incompleteness
+if qc_line['num_weeks'] != 'NA':
+
+    if qc_line['genome_completeness'] > 0.1:
+        scaled_variants = qc_line['num_variants_snvs'] / qc_line['genome_completeness']
+
+        # very conservative upper limit on the number of acceptable variants
+        # samples that fail this check should be manually reviewed incorporating other
+        # evidence (frameshift indels, not failed outright)
+        variant_threshold = qc_line['num_weeks'] * 0.75 + 15
+        if scaled_variants > variant_threshold:
+            qc_flags.append("EXCESS_VARIANTS")
+        qc_line['scaled_variants'] = "%.2f" % (scaled_variants / float(qc_line['num_weeks']))
+    else:
+        qc_line['scaled_variants'] = "NA"
+else:
+    qc_line['scaled_variants'] = "NA"
+    qc_flags.append("NO_COLLECTION_DATE")
+
 qc_flag_str = "PASS"
 if len(qc_flags) > 0:
     qc_flag_str = ",".join(qc_flags)
