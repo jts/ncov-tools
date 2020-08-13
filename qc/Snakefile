@@ -107,9 +107,9 @@ def get_qc_summary_metadata_opt(wildcards):
 def get_variants(wildcards):
     if "platform" in config:
         if config['platform'] == 'oxford-nanopore':
-            return "data/{sample}.pass.vcf.gz"
+            return "%s/{sample}.pass.vcf.gz" % config['data_root']
         elif config['platform'] == 'illumina':
-            return "data/{sample}.variants.tsv"
+            return "%s/{sample}.variants.tsv" % config['data_root']
     else:
         return ""
 
@@ -122,9 +122,10 @@ def get_platform_opt(wildcards):
 def get_consensus(wildcards):
     if "platform" in config:
         if config['platform'] == 'oxford-nanopore':
-            return "data/{sample}.consensus.fasta"
+            consensus_fasta = "%s/{sample}.consensus.fasta" % config['data_root']
+            return "%s/{sample}.consensus.fasta" % config['data_root']
         elif config['platform'] == 'illumina':
-            return "data/{sample}.primertrimmed.consensus.fa"
+            return "%s/{sample}.primertrimmed.consensus.fa" % config['data_root']
     else:
         return ""
 
