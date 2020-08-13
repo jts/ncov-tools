@@ -21,7 +21,7 @@ coverage statistics.
 ## Installation
 After downloading the repository, the package can be installed using `pip`:
 ```
-git clone git@github.com:jts/ncov-tools.git
+git clone https://github.com/jts/ncov-tools
 cd ncov-tools/parser
 pip install .
 ```
