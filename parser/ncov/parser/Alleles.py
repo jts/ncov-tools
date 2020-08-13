@@ -54,7 +54,7 @@ class Alleles():
         total_snvs = 0
         if sample in self.data:
             for pos in self.data[sample]:
-                for variant in self.data[sample][pos]:
+                for variant in self.data[sample][pos]['alt_allele']:
                     if not is_variant_iupac(variant=variant):
                         total_snvs += 1
         return {'num_consensus_snvs' : total_snvs}
