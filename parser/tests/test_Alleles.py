@@ -14,3 +14,4 @@ class AllelesTest(unittest.TestCase):
     
     def test_get_variant_counts(self):
         self.assertEqual(test_alleles.get_variant_counts(sample='sampleA')['num_consensus_snvs'], 5)
+        self.assertEqual(test_alleles.get_variant_counts(sample='sampleB')['num_consensus_snvs'], 6)
