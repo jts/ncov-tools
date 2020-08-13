@@ -92,11 +92,11 @@ if qc_line['num_weeks'] != 'NA':
         variant_threshold = qc_line['num_weeks'] * 0.75 + 15
         if scaled_variants > variant_threshold:
             qc_flags.append("EXCESS_VARIANTS")
-        qc_line['scaled_variants'] = "%.2f" % (scaled_variants / float(qc_line['num_weeks']))
+        qc_line['scaled_variants_snvs'] = "%.2f" % (scaled_variants)
     else:
-        qc_line['scaled_variants'] = "NA"
+        qc_line['scaled_variants_snvs'] = "NA"
 else:
-    qc_line['scaled_variants'] = "NA"
+    qc_line['scaled_variants_snvs'] = "NA"
     qc_flags.append("NO_COLLECTION_DATE")
 
 qc_flag_str = "PASS"
