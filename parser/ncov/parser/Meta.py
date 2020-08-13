@@ -52,6 +52,8 @@ class Meta():
                                                           start_date=self.start_date)
                         num_weeks = get_number_of_weeks(date=line[date_id],
                                                         start_date=self.start_date)
+                        if num_weeks <= 0:
+                            num_weeks = 'NA'
                     else:
                         num_months = 'NA'
                         num_weeks = 'NA'
