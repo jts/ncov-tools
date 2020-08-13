@@ -370,9 +370,10 @@ rule make_sample_qc_summary:
     params:
         py_script="get_qc.py",
         metadata_opt=get_qc_summary_metadata_opt,
-        platform_opt=get_platform_opt
+        platform_opt=get_platform_opt,
+        run_name_opt=get_run_name
     shell:
-        "{params.py_script} --alleles {input.alleles} --coverage {input.samplecoverage} --variants {input.samplevariants} {params.metadata_opt} --indel --consensus {input.sampleconsensus} {params.platform_opt} --sample {wildcards.sample} > {output}"
+        "{params.py_script} --alleles {input.alleles} --coverage {input.samplecoverage} --variants {input.samplevariants} {params.metadata_opt} --indel --consensus {input.sampleconsensus} {params.platform_opt} --sample {wildcards.sample} --run_name {params.run_name} > {output}"
 
 rule make_full_qc_summary:
     input:
