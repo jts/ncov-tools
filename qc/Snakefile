@@ -119,6 +119,9 @@ def get_platform_opt(wildcards):
     else:
         return ""
 
+def get_run_name_opt(wildcards):
+    return get_run_name()
+
 def get_consensus(wildcards):
     if "platform" in config:
         if config['platform'] == 'oxford-nanopore':
@@ -370,9 +373,10 @@ rule make_sample_qc_summary:
     params:
         py_script="get_qc.py",
         metadata_opt=get_qc_summary_metadata_opt,
-        platform_opt=get_platform_opt
+        platform_opt=get_platform_opt,
+        run_name_opt=get_run_name_opt
     shell:
-        "{params.py_script} --alleles {input.alleles} --coverage {input.samplecoverage} --variants {input.samplevariants} {params.metadata_opt} --indel --consensus {input.sampleconsensus} {params.platform_opt} --sample {wildcards.sample} > {output}"
+        "{params.py_script} --alleles {input.alleles} --coverage {input.samplecoverage} --variants {input.samplevariants} {params.metadata_opt} --indel --consensus {input.sampleconsensus} {params.platform_opt} --sample {wildcards.sample} --run_name {params.run_name_opt} > {output}"
 
 rule make_full_qc_summary:
     input:

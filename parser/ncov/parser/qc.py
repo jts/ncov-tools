@@ -11,6 +11,7 @@ def write_qc_summary(summary):
     '''
     A function to write the QC data line to output in the order:
         * sample
+        * run_name
         * num_consensus_snvs
         * num_consensus_n
         * num_consensus_iupac
@@ -33,6 +34,7 @@ def write_qc_summary(summary):
     '''
     summary_line = '\t'.join([
         summary['sample'],
+        str(summary['run_name']),
         str(summary['num_consensus_snvs']),
         str(summary['num_consensus_n']),
         str(summary['num_consensus_iupac']),
@@ -50,6 +52,7 @@ def write_qc_summary(summary):
 
 
 def write_qc_summary_header(header=['sample',
+                                    'run_name',
                                     'num_consensus_snvs',
                                     'num_consensus_n',
                                     'num_consensus_iupac',
@@ -93,7 +96,7 @@ def collect_qc_summary_data(path, pattern='.summary.qc.tsv'):
         with open(file) as file_p:
             for line in file_p:
                 # skip the header
-                if re.match("^sample\tnum_consensus_snvs\tnum_consensus_n", line):
+                if re.match("^sample\trun_name\tnum_consensus_snvs\tnum_consensus_n", line):
                     continue
                 data.append(line.rstrip())
     return data
