@@ -24,6 +24,8 @@ parser.add_argument('-s', '--sample',
                     help='name of sample being processed')
 parser.add_argument('-p', '--platform', default='illumina',
                     help='sequencing platform used')
+parser.add_argument('-r', '--run_name',
+                    help='run name for sample')
 if len(sys.argv) == 1:
     parser.print_help(sys.stderr)
     sys.exit('Invalid number of arguments')
@@ -83,6 +85,7 @@ if len(qc_flags) > 0:
     qc_flag_str = ",".join(qc_flags)
 
 qc_line.update({'qc_pass' : qc_flag_str})
+qc_line.update({'run_name' : args.run_name})
 
 qc.write_qc_summary_header()
 qc.write_qc_summary(summary=qc_line)
