@@ -15,7 +15,22 @@ To use this package, install the dependencies using conda:
 conda env create -f environment.yml
 ```
 
-Activate the conda package and install the `parser` package:
+Alternatively, if install times are very slow using conda, we recommend using
+the conda wrapper: [mamba](https://github.com/TheSnakePit/mamba).
+
+Install mamba as follows:
+```
+conda install -c conda-forge mamba
+```
+
+Then create the ncov-tools environment using mamba
+
+```
+mamba env create -f environment.yml
+```
+
+Either way, if you used conda directly or mamba, activate 
+the conda package and install the `parser` package:
 ```
 conda activate ncov-qc
 cd parser
