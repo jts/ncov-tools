@@ -10,7 +10,16 @@ def get_bam_pattern():
     return config.get("bam_pattern", "{data_root}/{sample}.sorted.bam")
 
 def get_consensus_pattern():
-    return config.get("consensus_pattern", "{data_root}/{sample}.primertrimmed.consensus.fa")
+    if config['platform'] == 'illumina':
+        return config.get("consensus_pattern", "{data_root}/{sample}.primertrimmed.consensus.fa")
+    elif config['platform'] == 'oxford-nanopore':
+        return config.get("consensus_pattern", "{data_root}/{sample}.consensus.fasta")
+
+def get_variant_pattern():
+    if config['platform'] == 'illumina':
+        return config.get("variants_pattern", "{data_root}/{sample}.variants.tsv")
+    elif config['platform'] == 'oxford-nanopore':
+        return config.get("variants_pattern", "{data_root}/{sample}.pass.vcf.gz")
 
 def get_metadata_file(wildcards):
     return config.get("metadata", "")
@@ -105,13 +114,14 @@ def get_qc_summary_metadata_opt(wildcards):
         return ""
 
 def get_variants(wildcards):
-    if "platform" in config:
-        if config['platform'] == 'oxford-nanopore':
-            return "%s/{sample}.pass.vcf.gz" % config['data_root']
-        elif config['platform'] == 'illumina':
-            return "%s/{sample}.variants.tsv" % config['data_root']
-    else:
-        return ""
+    return get_variants_pattern()    
+    # if "platform" in config:
+    #     if config['platform'] == 'oxford-nanopore':
+    #         return "%s/{sample}.pass.vcf.gz" % config['data_root']
+    #     elif config['platform'] == 'illumina':
+    #         return "%s/{sample}.variants.tsv" % config['data_root']
+    # else:
+    #     return ""
 
 def get_platform_opt(wildcards):
     if "platform" in config:
@@ -123,14 +133,17 @@ def get_run_name_opt(wildcards):
     return get_run_name()
 
 def get_consensus(wildcards):
-    if "platform" in config:
-        if config['platform'] == 'oxford-nanopore':
-            consensus_fasta = "%s/{sample}.consensus.fasta" % config['data_root']
-            return "%s/{sample}.consensus.fasta" % config['data_root']
-        elif config['platform'] == 'illumina':
-            return "%s/{sample}.primertrimmed.consensus.fa" % config['data_root']
-    else:
-        return ""
+    return get_consensus_pattern()
+#     pattern=get_consensus_pattern()
+#     if "platform" in config:
+#         if config['platform'] == 'oxford-nanopore':
+# #            consensus_fasta = "%s/{sample}.consensus.fasta" % config['data_root']
+#             consensus_fasta = "%s/{sample}.%s" % (config['data_root'], pattern)
+#             return "%s/{sample}.consensus.fasta" % config['data_root']
+#         elif config['platform'] == 'illumina':
+#             return "%s/{sample}.primertrimmed.consensus.fa" % config['data_root']
+#     else:
+#         return ""
 
 def get_run_alleles(wildcards):
     rn = get_run_name()
