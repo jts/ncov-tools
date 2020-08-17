@@ -97,7 +97,6 @@ if qc_line['num_weeks'] != 'NA':
         qc_line['scaled_variants_snvs'] = "NA"
 else:
     qc_line['scaled_variants_snvs'] = "NA"
-    qc_flags.append("NO_COLLECTION_DATE")
 
 qc_flag_str = "PASS"
 if len(qc_flags) > 0:
