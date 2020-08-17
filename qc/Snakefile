@@ -64,6 +64,20 @@ def get_bam_for_sample(wildcards):
     bam_pattern = get_bam_pattern()
     return bam_pattern.format(data_root=config["data_root"], sample=wildcards.sample)
 
+def get_primer_trimmed_bam_for_sample(wildcards):
+    pt_bam_pattern = get_bam_pattern()
+    if "platform" not in config:
+        sys.stderr.write("Error: platform not defined in config")
+        sys.exit(1)
+
+    if config['platform'] == 'oxford-nanopore':
+        return "%s/{sample}.primertrimmed.rg.sorted.bam" % config['data_root']
+    elif config['platform'] == 'illumina':
+        return "%s/{sample}.mapped.primertrimmed.sorted.bam" % config['data_root']
+    else:
+        sys.stderr.write("Error: unrecognized platform")
+        sys.exit(1)
+
 def get_tree_consensus_sequences(wildcards):
     pattern = get_consensus_pattern()
     consensus_sequences = [pattern.format(data_root=config["data_root"], sample=s) for s in get_sample_names()]
@@ -237,7 +251,7 @@ rule make_amplicon_per_base_coverage:
 # to do some hacky symlinking to work around it
 rule make_tmp_bam:
     input:
-        get_bam_for_sample
+        get_primer_trimmed_bam_for_sample
     output:
         "tmp_bam/{sample}.bam"
     shell:
