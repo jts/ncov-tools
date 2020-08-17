@@ -46,11 +46,10 @@ def get_sample_names():
     for b in bams:
         f = os.path.basename(b)
         fields = f.split(".")
-        if len(fields) > 4:
-            continue
         samples.append(fields[0])
 
-    return samples
+    # remove any possible duplicates
+    return list(set(samples))
 
 def get_negative_control_samples():
     if "negative_control_samples" in config:
