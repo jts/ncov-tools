@@ -114,14 +114,8 @@ def get_qc_summary_metadata_opt(wildcards):
         return ""
 
 def get_variants(wildcards):
-    return get_variants_pattern()    
-    # if "platform" in config:
-    #     if config['platform'] == 'oxford-nanopore':
-    #         return "%s/{sample}.pass.vcf.gz" % config['data_root']
-    #     elif config['platform'] == 'illumina':
-    #         return "%s/{sample}.variants.tsv" % config['data_root']
-    # else:
-    #     return ""
+    pattern = get_variants_pattern()
+    return pattern.format(data_root=config['data_root'], sample=wildcards.sample)
 
 def get_platform_opt(wildcards):
     if "platform" in config:
@@ -133,17 +127,8 @@ def get_run_name_opt(wildcards):
     return get_run_name()
 
 def get_consensus(wildcards):
-    return get_consensus_pattern()
-#     pattern=get_consensus_pattern()
-#     if "platform" in config:
-#         if config['platform'] == 'oxford-nanopore':
-# #            consensus_fasta = "%s/{sample}.consensus.fasta" % config['data_root']
-#             consensus_fasta = "%s/{sample}.%s" % (config['data_root'], pattern)
-#             return "%s/{sample}.consensus.fasta" % config['data_root']
-#         elif config['platform'] == 'illumina':
-#             return "%s/{sample}.primertrimmed.consensus.fa" % config['data_root']
-#     else:
-#         return ""
+    pattern = get_consensus_pattern()
+    return pattern.format(data_root=config['data_root'], sample=wildcards.sample)
 
 def get_run_alleles(wildcards):
     rn = get_run_name()
