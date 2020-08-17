@@ -106,7 +106,7 @@ def get_all_qc_analysis_plots(wildcards):
 
 def get_qc_summary(wildcards):
     prefix = get_run_name()
-    return "qc_analysis/%s_summary_qc.tsv" % (prefix)
+    return "qc_reports/%s_summary_qc.tsv" % (prefix)
 
 def get_qc_summary_metadata_opt(wildcards):
     metadata = get_metadata_file(wildcards)
@@ -149,7 +149,15 @@ def get_run_alleles(wildcards):
 
 def get_negative_control_report(wildcards):
     rn = get_run_name()
-    return "qc_sequencing/%s_negative_control_report.tsv" % (rn)
+    return "qc_reports/%s_negative_control_report.tsv" % (rn)
+
+def get_mixture_report(wildcards):
+    rn = get_run_name()
+    return "qc_reports/%s_mixture_report.tsv" % (rn)
+
+def get_ambiguous_report(wildcards):
+    rn = get_run_name()
+    return "qc_reports/%s_ambiguous_position_report.tsv" % (rn)
 
 #
 # top-level rules
@@ -173,6 +181,18 @@ rule all_qc_summary:
 rule all_qc_negative_control:
     input:
         get_negative_control_report
+
+rule all_mixture_report:
+    input:
+        get_mixture_report
+
+rule all_ambiguous_report:
+    input:
+        get_ambiguous_report
+
+rule all_qc_reports:
+    input:
+        get_qc_summary, get_negative_control_report, get_mixture_report, get_ambiguous_report
 
 #
 # generate coverage QC data using bedtools
@@ -401,7 +421,7 @@ rule make_full_qc_summary:
     input:
         expand("qc_analysis/{s}.summary.qc.tsv", s=get_sample_names())
     output:
-        "qc_analysis/{prefix}_summary_qc.tsv"
+        "qc_reports/{prefix}_summary_qc.tsv"
     params:
         py_script="collect_qc_summary.py"
     shell:
@@ -411,7 +431,7 @@ rule make_negative_control_report:
     input:
         bed=get_negative_control_bed
     output:
-        "qc_sequencing/{prefix}_negative_control_report.tsv"
+        "qc_reports/{prefix}_negative_control_report.tsv"
     params:
         script=srcdir("negative_control_check.py")
     shell:
@@ -430,7 +450,7 @@ rule make_mixture_report:
         fpileups="qc_sequencing/{prefix}_fpileups.fofn",
         alleles="qc_analysis/{prefix}_alleles.tsv"
     output:
-        "qc_analysis/{prefix}_mixture_report.tsv"
+        "qc_reports/{prefix}_mixture_report.tsv"
     params:
         script=srcdir("mixture_check.py")
     shell:
@@ -440,7 +460,7 @@ rule make_ambiguous_position_report:
     input:
         alleles="qc_analysis/{prefix}_alleles.tsv"
     output:
-        "qc_analysis/{prefix}_ambiguous_position_report.tsv"
+        "qc_reports/{prefix}_ambiguous_position_report.tsv"
     params:
         script=srcdir("ambiguous_position_check.py")
     shell:
