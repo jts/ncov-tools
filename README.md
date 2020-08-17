@@ -91,14 +91,14 @@ consensus_pattern: "{data_root}/{sample}.consensus.fasta"
 Some plots and QC statistics can be augmented with metadata like the qPCR Ct values, or the date the sample was collected. To enable this feature, add the path to the metadata to config.yaml:
 
 ```
-metadata: /path/to/metadata.tsv
+metadata: "/path/to/metadata.tsv"
 ```
 
 The expected metadata file is a sample TSV with up to three fields:
 
 ```
 sample   ct     date
-sampleA  20.8   2020-05-1
+sampleA  20.8   2020-05-01
 sampleB  27.1   2020-06-02
 ```
 
