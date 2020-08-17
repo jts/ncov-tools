@@ -66,7 +66,7 @@ def get_negative_control_bed(wildcards):
     for s in get_negative_control_samples():
         bam = bp.format(data_root=config["data_root"], sample=s)
         if os.path.exists(bam):
-            out.append("qc_sequencing/{sample}.per_base_coverage.bed".format(sample=s))
+            out.append("qc_sequencing/{sample}.amplicon_base_coverage.bed".format(sample=s))
     return out
 
 def get_bam_for_sample(wildcards):
@@ -244,6 +244,18 @@ rule make_amplicon_depth:
     shell:
         "echo -e \"reference_name\tstart\tend\tamplicon_id\tpool\tstrand\tmean_depth\" > {output};"
         "bedtools coverage -mean -a {config[amplicon_bed]} -b {input} >> {output}"
+
+rule make_amplicon_base_coverage:
+    input:
+        get_bam_for_sample
+    output:
+        "qc_sequencing/{sample}.amplicon_base_coverage.bed"
+    params:
+        memory_per_thread="2G"
+    threads: 1
+    shell:
+        "echo -e \"reference_name\tstart\tend\tamplicon_id\tpool\tstrand\tposition\tdepth\" > {output};"
+        "bedtools coverage -d -a {config[amplicon_bed]} -b {input} >> {output}"
 
 # https://bioinformatics.stackexchange.com/questions/91/how-to-convert-fasta-to-bed
 rule make_genome_bed:
