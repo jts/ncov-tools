@@ -145,7 +145,6 @@ snakemake -s qc/Snakefile all_qc_reports
 ## Output
 
 ```
-
 # A plot containing the coverage depth across the SARS-CoV-2 reference genome for each sample in the run
 plots/run_name_depth_by_position.pdf
 
