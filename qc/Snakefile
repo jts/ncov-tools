@@ -233,17 +233,39 @@ rule make_amplicon_coverage:
         "echo -e \"reference_name\tstart\tend\tamplicon_id\tpool\tstrand\tread_count\tcovered_bases\tamplicon_length\tfraction_covered\" > {output};"
         "bedtools coverage -a {config[amplicon_bed]} -b {input} >> {output}"
 
-rule make_amplicon_per_base_coverage:
+rule make_amplicon_depth:
     input:
         get_bam_for_sample
+    output:
+        "qc_sequencing/{sample}.amplicon_depth.bed"
+    params:
+        memory_per_thread="2G"
+    threads: 1
+    shell:
+        "echo -e \"reference_name\tstart\tend\tamplicon_id\tpool\tstrand\tmean_depth\" > {output};"
+        "bedtools coverage -mean -a {config[amplicon_bed]} -b {input} >> {output}"
+
+# https://bioinformatics.stackexchange.com/questions/91/how-to-convert-fasta-to-bed
+rule make_genome_bed:
+    input:
+        config["reference_genome"] + ".fai"
+    output:
+        "bed/genome.bed"
+    shell:
+        "cat {input} | awk '{{ print $1 \"\t0\t\" $2 }}' > {output}"
+
+rule make_genome_per_base_coverage:
+    input:
+        bam=get_bam_for_sample,
+        bed="bed/genome.bed"
     output:
         "qc_sequencing/{sample}.per_base_coverage.bed"
     params:
         memory_per_thread="2G"
     threads: 1
     shell:
-        "echo -e \"reference_name\tstart\tend\tamplicon_id\tpool\tstrand\tposition\tdepth\" > {output};"
-        "bedtools coverage -d -a {config[amplicon_bed]} -b {input} >> {output}"
+        "echo -e \"reference_name\tstart\tend\tposition\tdepth\" > {output};"
+        "bedtools coverage -d -a {input.bed} -b {input.bam} >> {output}"
 
 # pysam's index_filename option is broken so we have
 # to do some hacky symlinking to work around it
@@ -363,7 +385,7 @@ rule make_qc_plot_depth_by_position:
 
 rule make_qc_plot_amplicon_depth_by_ct:
     input:
-        files=expand("qc_sequencing/{s}.per_base_coverage.bed", s=get_sample_names()),
+        files=expand("qc_sequencing/{s}.amplicon_depth.bed", s=get_sample_names()),
         metadata=get_metadata_file
     output:
         "plots/{prefix}_amplicon_depth_by_ct.pdf"
@@ -381,16 +403,6 @@ rule make_qc_plot_fraction_covered_by_amplicon:
         plot_script = srcdir("plot_qc_sequencing.R")
     shell:
         "Rscript {params.plot_script} amplicon_covered_fraction {wildcards.prefix}"
-
-rule make_qc_plot_alt_frequency:
-    input:
-        expand("qc_sequencing/{s}.fpileup.tsv", s=get_sample_names())
-    output:
-        expand("plots/alt_frequency.pdf")
-    params:
-        plot_script = srcdir("plot_qc_sequencing.R")
-    shell:
-        "Rscript {params.plot_script} alt_allele_frequency {wildcards.prefix}"
 
 rule make_qc_genome_completeness_by_ct:
     input:
