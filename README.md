@@ -84,6 +84,10 @@ bam_pattern: "{data_root}/{sample}.sorted.bam"
 
 # the naming convention for the consensus sequences
 consensus_pattern: "{data_root}/{sample}.consensus.fasta"
+
+# the naming convention for the variants file, NF illumina runs typically use
+# "{data_root}/{sample}.variants.tsv and oxford nanopore runs use "{data_root}/{sample}.pass.vcf.gz"
+variants_pattern: "{data_root}/{sample}.variants.tsv
 ```
 
 ## Metadata (optional)
