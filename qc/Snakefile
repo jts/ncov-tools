@@ -68,6 +68,15 @@ def get_negative_control_bed(wildcards):
             out.append("qc_sequencing/{sample}.amplicon_base_coverage.bed".format(sample=s))
     return out
 
+def get_amplicon_bed(wildcards):
+    return config["amplicon_bed"].format(data_root=config["data_root"])
+
+def get_reference_genome(wildcards):
+    return config["reference_genome"].format(data_root=config["data_root"])
+
+def get_reference_genome_fai(wildcards):
+    return get_reference_genome(wildcards) + ".fai"
+
 def get_bam_for_sample(wildcards):
     bam_pattern = get_bam_pattern()
     return bam_pattern.format(data_root=config["data_root"], sample=wildcards.sample)
@@ -221,7 +230,8 @@ rule all_qc_reports:
 #
 rule make_amplicon_mean_coverage:
     input:
-        get_bam_for_sample
+        bam=get_bam_for_sample,
+        bed=get_amplicon_bed
     output:
         "qc_sequencing/{sample}.mean_coverage.bed"
     params:
@@ -229,11 +239,12 @@ rule make_amplicon_mean_coverage:
     threads: 1
     shell:
         "echo -e \"reference_name\tstart\tend\tamplicon_id\tpool\tstrand\tmean_coverage\" > {output};"
-        "bedtools coverage -mean -a {config[amplicon_bed]} -b {input} >> {output}"
+        "bedtools coverage -mean -a {input.bed} -b {input.bam} >> {output}"
 
 rule make_amplicon_coverage:
     input:
-        get_bam_for_sample
+        bam=get_bam_for_sample,
+        bed=get_amplicon_bed
     output:
         "qc_sequencing/{sample}.amplicon_coverage.bed"
     params:
@@ -241,11 +252,12 @@ rule make_amplicon_coverage:
     threads: 1
     shell:
         "echo -e \"reference_name\tstart\tend\tamplicon_id\tpool\tstrand\tread_count\tcovered_bases\tamplicon_length\tfraction_covered\" > {output};"
-        "bedtools coverage -a {config[amplicon_bed]} -b {input} >> {output}"
+        "bedtools coverage -a {input.bed} -b {input.bam} >> {output}"
 
 rule make_amplicon_depth:
     input:
-        get_bam_for_sample
+        bam=get_bam_for_sample,
+        bed=get_amplicon_bed
     output:
         "qc_sequencing/{sample}.amplicon_depth.bed"
     params:
@@ -253,11 +265,12 @@ rule make_amplicon_depth:
     threads: 1
     shell:
         "echo -e \"reference_name\tstart\tend\tamplicon_id\tpool\tstrand\tmean_depth\" > {output};"
-        "bedtools coverage -mean -a {config[amplicon_bed]} -b {input} >> {output}"
+        "bedtools coverage -mean -a {input.bed} -b {input.bam} >> {output}"
 
 rule make_amplicon_base_coverage:
     input:
-        get_bam_for_sample
+        bam=get_bam_for_sample,
+        bed=get_amplicon_bed
     output:
         "qc_sequencing/{sample}.amplicon_base_coverage.bed"
     params:
@@ -265,12 +278,12 @@ rule make_amplicon_base_coverage:
     threads: 1
     shell:
         "echo -e \"reference_name\tstart\tend\tamplicon_id\tpool\tstrand\tposition\tdepth\" > {output};"
-        "bedtools coverage -d -a {config[amplicon_bed]} -b {input} >> {output}"
+        "bedtools coverage -d -a {input.bed} -b {input.bam} >> {output}"
 
 # https://bioinformatics.stackexchange.com/questions/91/how-to-convert-fasta-to-bed
 rule make_genome_bed:
     input:
-        config["reference_genome"] + ".fai"
+        get_reference_genome_fai
     output:
         "bed/genome.bed"
     shell:
@@ -310,13 +323,14 @@ rule make_bam_index:
 rule make_formatted_pileup:
     input:
         bam="tmp_bam/{sample}.bam",
-        bai="tmp_bam/{sample}.bam.bai"
+        bai="tmp_bam/{sample}.bam.bai",
+        reference=get_reference_genome
     output:
         "qc_sequencing/{sample}.fpileup.tsv"
     params:
         pileup_script = srcdir("format_pileup.py")
     shell:
-        "python {params.pileup_script} --bam {input.bam} --reference {config[reference_genome]} > {output}"
+        "python {params.pileup_script} --bam {input.bam} --reference {input.reference} > {output}"
 
 rule merge_artic_qc:
     input:
@@ -341,11 +355,12 @@ rule make_merged_consensus:
 
 rule make_msa:
     input:
-        "qc_analysis/{prefix}_consensus.fasta"
+        consensus="qc_analysis/{prefix}_consensus.fasta",
+        reference=get_reference_genome
     output:
         "qc_analysis/{prefix}_aligned.fasta"
     shell:
-        "augur align --sequences {input} --reference-sequence {config[reference_genome]} --output {output} --fill-gaps"
+        "augur align --sequences {input.consensus} --reference-sequence {input.reference} --output {output} --fill-gaps"
 
 rule make_tree_raw:
     input:
@@ -357,11 +372,12 @@ rule make_tree_raw:
 
 rule make_tree_final:
     input:
-        "qc_analysis/{prefix}_tree_raw.nwk"
+        tree="qc_analysis/{prefix}_tree_raw.nwk",
+        reference=get_reference_genome
     output:
         "qc_analysis/{prefix}_tree.nwk"
     shell:
-        "nw_reroot {input} `head -1 {config[reference_genome]} | tr -d \">\"` > {output}"
+        "nw_reroot {input} `head -1 {input.reference} | tr -d \">\"` > {output}"
 
 rule make_alleles:
     input:
