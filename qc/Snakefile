@@ -22,7 +22,7 @@ def get_variants_pattern():
         return config.get("variants_pattern", "{data_root}/{sample}.pass.vcf.gz")
 
 def get_metadata_file(wildcards):
-    return config.get("metadata", "")
+    return config.get("metadata", "").format(data_root=config["data_root"])
 
 def get_run_name():
     return config.get("run_name", "default")
