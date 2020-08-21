@@ -133,15 +133,17 @@ def write_negative_control_section():
     
     tf = TableFormatter()
     # map to rename header columns into more interpretable names
-    tf.name_map = { "genome_covered_bases" : "Covered",
+    tf.name_map = { "file" : "Sample",
+                    "genome_covered_bases" : "Covered",
                     "genome_total_bases" : "Target Footprint",
-                    "genome_covered_span" : "Fraction Covered",
+                    "genome_covered_span" : "Percent Covered",
                     "amplicons_detected" : "Amplicons Detected" 
                   }
 
     # map to transform selected row columns into more readable values
     tf.row_func = { "file" : lambda value : filename_to_sample(value),
-                    "amplicons_detected" : lambda value : value.replace(",", ", ") 
+                    "amplicons_detected" : lambda value : value.replace(",", ", "), 
+                    "genome_covered_span" : lambda value : "%.1f" % (float(value) * 100.0)
                   }
 
     tf.table_spec = "|c|c|c|c|c|p{5cm}|"
@@ -176,8 +178,8 @@ def write_tree_section():
 
         # Make the ambiguity table
         tf.name_map = { "position" : "Genome Position",
-                     "count"    : "Number of ambiguous samples",
-                     "alleles"  : "Observed Alleles" }
+                        "count"    : "Number of ambiguous samples",
+                        "alleles"  : "Observed Alleles" }
         tf.row_func = dict()
         tf.table_spec = "{|c|c|c|}"
         tsv_to_table(args.ambiguity_table.format(run_name=args.run_name), tf)
@@ -188,7 +190,6 @@ def write_tree_section():
     print(r"\subsection{Mixture Report}")
     
     # The mixture table can be quite large so we report the samples as a list
-
     mixture_report_fn = args.mixture_table.format(run_name=args.run_name)
     mixture_samples = set()
     with(open(mixture_report_fn)) as f:
@@ -196,7 +197,7 @@ def write_tree_section():
         for row in reader:
             mixture_samples.add(row['sample_a'])
     
-    if len(mixture_samples) > 1:
+    if len(mixture_samples) > 0:
         s = "The following samples were detected by \\texttt{mixture\_report.py} as having"\
         " read evidence for multiple distinct sequences. These samples should be checked"\
         " for contamation: "
