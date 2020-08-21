@@ -170,12 +170,8 @@ def write_negative_control_section():
 def write_tree_section():
     print("\section{Sequence Variation}")
    
-    plot_path = args.tree_figure.format(run_name=args.run_name)
-    tree_figures = pdf_to_png(plot_path)
-
-    # Plot each depth image for the negative control samples
-    for tree_png in tree_figures:
-        write_image(tree_png, 0.4)
+    tree_plot_path = args.tree_figure.format(run_name=args.run_name)
+    write_image(tree_plot_path, 0.4)
 
     # Ambiguity subsection
     print(r"\subsection{Ambiguity Report}")
