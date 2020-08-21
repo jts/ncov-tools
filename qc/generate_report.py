@@ -47,6 +47,16 @@ def write_postamble():
 \end{document}'''
     print(p)
 
+# count the number of rows in a tsv file
+def count_tsv(filename):
+
+    c = 0
+    with(open(filename)) as f:
+        reader = csv.DictReader(f, delimiter="\t")
+        for row in reader:
+            c += 1
+    return c
+
 def escape_latex(s):
     return s.replace("_", "\_")
 
@@ -153,16 +163,24 @@ def write_tree_section():
     # Ambiguity
     #
     print(r"\subsection{Ambiguity Report}")
-    print(r"This table reports any positions in the genome that had an ambiguous consensus base (IUPAC, but not N) in multiple samples. This can be evidence of contamination so these positions should be investigated.")
-    tf = TableFormatter()
 
-    # Make the ambiguity table
-    tf.name_map = { "position" : "Genome Position",
-                 "count"    : "Number of ambiguous samples",
-                 "alleles"  : "Observed Alleles" }
-    tf.row_func = dict()
-    tf.table_spec = "{|c|c|c|}"
-    tsv_to_table(args.ambiguity_table.format(run_name=args.run_name), tf)
+    ambiguity_filename = args.ambiguity_table.format(run_name=args.run_name)
+
+    row_count = count_tsv(ambiguity_filename)
+
+    if row_count == 0:
+        print(r"No positions in the genome had an ambiguous consensus base (IUPAC, but not N) in multiple samples.")
+    else:
+        print(r"This table reports positions in the genome that had an ambiguous consensus base (IUPAC, but not N) in multiple samples. This can be evidence of contamination so these positions should be investigated.")
+        tf = TableFormatter()
+
+        # Make the ambiguity table
+        tf.name_map = { "position" : "Genome Position",
+                     "count"    : "Number of ambiguous samples",
+                     "alleles"  : "Observed Alleles" }
+        tf.row_func = dict()
+        tf.table_spec = "{|c|c|c|}"
+        tsv_to_table(args.ambiguity_table.format(run_name=args.run_name), tf)
     
     #
     # Mixture

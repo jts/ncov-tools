@@ -24,7 +24,7 @@ def get_variants_pattern():
 def get_metadata_file(wildcards):
     return config.get("metadata", "").format(data_root=config["data_root"])
 
-def get_run_name():
+def get_run_name(wildcards=None):
     return config.get("run_name", "default")
 
 def get_sample_names():
@@ -538,3 +538,29 @@ rule make_ambiguous_position_report:
         script=srcdir("ambiguous_position_check.py")
     shell:
         "python {params.script} --alleles {input.alleles} --min-count 3 > {output}"
+
+rule make_report_tex:
+    input:
+        get_qc_reports,
+        "plots/{prefix}_tree_snps.pdf",
+        "plots/{prefix}_depth_by_position_negative_control.pdf"
+    output:
+        "qc_reports/{prefix}.tex"
+    params:
+        script=srcdir("generate_report.py"),
+        run_name=get_run_name
+    shell:
+        "python {params.script} --run-name {params.run_name} > {output}"
+
+rule make_report_pdf:
+    input:
+        "qc_reports/{prefix}.tex"
+    output:
+        "qc_reports/{prefix}.pdf"
+    shell:
+        # The long table package needs pdflatex to be run up to 3 times
+        # to correctly typeset the tables
+        "pdflatex -output-directory qc_reports {input} &&"
+        "pdflatex -output-directory qc_reports {input} &&"
+        "pdflatex -output-directory qc_reports {input}"
+
