@@ -294,7 +294,7 @@ rule make_genome_per_base_coverage:
         bam=get_bam_for_sample,
         bed="bed/genome.bed"
     output:
-        "qc_sequencing/{sample}.per_base_coverage.bed"
+        "{directory}/{sample}.per_base_coverage.bed"
     params:
         memory_per_thread="2G"
     threads: 1
@@ -420,6 +420,17 @@ rule make_qc_plot_depth_by_position:
         metadata=get_metadata_file
     shell:
         "Rscript {params.plot_script} depth_by_position {wildcards.prefix} {params.metadata}"
+
+rule make_qc_plot_depth_by_position_negative_controls:
+    input:
+        expand("qc_sequencing_negative_control/{s}.per_base_coverage.bed", s=get_negative_control_samples())
+    output:
+        "plots/{prefix}_depth_by_position_negative_control.pdf"
+    params:
+        plot_script = srcdir("plot_qc_sequencing.R"),
+        metadata=get_metadata_file
+    shell:
+        "Rscript {params.plot_script} negative_control_depth_by_position {wildcards.prefix} {params.metadata}"
 
 rule make_qc_plot_amplicon_depth_by_ct:
     input:
