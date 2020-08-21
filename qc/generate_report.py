@@ -8,6 +8,13 @@ import sys
 import os
 import re
 
+#
+# utility class to assist in converting
+# a tsv into a latex table - it can
+# rename header columns (name_map)
+# perform arbitrary transforms (row_func)
+# and filter out columns
+#
 class TableFormatter:
     def __init__(self):
         self.name_map = dict()
@@ -16,7 +23,7 @@ class TableFormatter:
         self.table_spec = ""
         self.size = "normalsize"
 
-# convert a pdf to a collection of pngs, returning a list of filenames
+# convert a pdf to a collection of pngs, returning a list of the generated filenames
 def pdf_to_png(pdf_name, output_directory="report_images"):
 
     if not os.path.exists(output_directory):
@@ -25,7 +32,7 @@ def pdf_to_png(pdf_name, output_directory="report_images"):
     os.system("pdftoppm %s %s/%s -png" % (pdf_name, output_directory, prefix))
     return sorted(glob.glob("%s/%s*.png" % (output_directory, prefix)))
 
-# latex starting boilerplate
+# latex starting boilerplate to set up the document class, packages, etc
 def write_preamble():
 
     p = r'''
@@ -63,6 +70,7 @@ def escape_latex(s):
 # high-level function to transform a tsv into a latex table
 # performing remapping of column names and arbitrary transformation
 # of values within each column (e.g. escaping characters latex doesn't like)
+# using table formatter
 def tsv_to_table(filename, table_formatter):
     with(open(filename)) as f:
         reader = csv.DictReader(f, delimiter="\t")
@@ -91,14 +99,16 @@ def tsv_to_table(filename, table_formatter):
                     row[k] = table_formatter.row_func[k](row[k])
             rows.append(row.values())
 
+        # write latex to stdout
         write_table(table_formatter.table_spec, header, rows, table_formatter.size)
 
-#
+# latex for displaying an image
 def write_image(image_filename, scale=1.0):
     print(r"\begin{center}")
     print("\includegraphics[scale=%f]{%s}" % (scale, image_filename))
     print(r"\end{center}")
 
+# latex for displaying a table 
 def write_table(spec, header, rows, size):
     print(r"\begin{center}")
     print(r"\%s" % size)
@@ -114,69 +124,75 @@ def write_table(spec, header, rows, size):
     print(r"\normalsize")
     print(r"\end{center}")
 
+# parse a sample name from a filename, assuming the
+# sample name is the first entry
 def filename_to_sample(fn):
     return os.path.basename(fn).split(".")[0]
 
+# write the section of the report describing the negative control checks
 def write_negative_control_section():
-
-    plot_path = args.negative_control_depth_figure.format(run_name=args.run_name)
-
-    nc_depth_figures = pdf_to_png(plot_path)
 
     print(r"\section{Negative Control}")
 
-    # Plot each depth image for the negative control samples
+    plot_path = args.negative_control_depth_figure.format(run_name=args.run_name)
+    nc_depth_figures = pdf_to_png(plot_path)
+
+    # plot each depth image for the negative control samples
     for depth_png in nc_depth_figures:
         write_image(depth_png, 0.75)
 
+    # write summary table
     table_path = args.negative_control_table.format(run_name=args.run_name)
     
+    # set up TableFormatter to transform the tsv into a nicer display
     tf = TableFormatter()
+
     # map to rename header columns into more interpretable names
     tf.name_map = { "file" : "Sample",
                     "genome_covered_bases" : "Covered",
                     "genome_total_bases" : "Target Footprint",
-                    "genome_covered_span" : "Percent Covered",
+                    "genome_covered_fraction" : "Percent Covered",
                     "amplicons_detected" : "Amplicons Detected" 
                   }
 
     # map to transform selected row columns into more readable values
     tf.row_func = { "file" : lambda value : filename_to_sample(value),
                     "amplicons_detected" : lambda value : value.replace(",", ", "), 
-                    "genome_covered_span" : lambda value : "%.1f" % (float(value) * 100.0)
+                    "genome_covered_fraction" : lambda value : "%.1f" % (float(value) * 100.0)
                   }
 
     tf.table_spec = "|c|c|c|c|c|p{5cm}|"
     tsv_to_table(table_path, tf)
     return
 
+# write the section of the report containing the tree-snps plot
+# and the ambiguity report
 def write_tree_section():
-    plot_path = args.tree_figure.format(run_name=args.run_name)
-
-    tree_figures = pdf_to_png(plot_path)
-
     print("\section{Sequence Variation}")
+   
+    plot_path = args.tree_figure.format(run_name=args.run_name)
+    tree_figures = pdf_to_png(plot_path)
 
     # Plot each depth image for the negative control samples
     for tree_png in tree_figures:
         write_image(tree_png, 0.4)
 
-    #
-    # Ambiguity
-    #
+    # Ambiguity subsection
     print(r"\subsection{Ambiguity Report}")
 
     ambiguity_filename = args.ambiguity_table.format(run_name=args.run_name)
-
     row_count = count_tsv(ambiguity_filename)
 
     if row_count == 0:
         print(r"No positions in the genome had an ambiguous consensus base (IUPAC, but not N) in multiple samples.")
     else:
-        print(r"This table reports positions in the genome that had an ambiguous consensus base (IUPAC, but not N) in multiple samples. This can be evidence of contamination so these positions should be investigated.")
-        tf = TableFormatter()
+        s = "This table reports positions in the genome that had an ambiguous consensus base"\
+            " (IUPAC, but not N) in multiple samples. This can be evidence of contamination"\
+            " so these positions should be investigated."
+        print(s)
 
         # Make the ambiguity table
+        tf = TableFormatter()
         tf.name_map = { "position" : "Genome Position",
                         "count"    : "Number of ambiguous samples",
                         "alleles"  : "Observed Alleles" }
@@ -184,9 +200,7 @@ def write_tree_section():
         tf.table_spec = "{|c|c|c|}"
         tsv_to_table(args.ambiguity_table.format(run_name=args.run_name), tf)
     
-    #
-    # Mixture
-    #
+    # Mixture/Contamination subsection
     print(r"\subsection{Mixture Report}")
     
     # The mixture table can be quite large so we report the samples as a list
@@ -199,12 +213,13 @@ def write_tree_section():
     
     if len(mixture_samples) > 0:
         s = "The following samples were detected by \\texttt{mixture\_report.py} as having"\
-        " read evidence for multiple distinct sequences. These samples should be checked"\
-        " for contamation: "
+            " read evidence for multiple distinct sequences. These samples should be checked"\
+            " for contamation: "
         print(s + ", ".join([ "\\textbf{%s}" % escape_latex(a) for a in mixture_samples]) + ".")
     else:
         print(r"No samples were detected by \texttt{mixture\_report.py} as having read evidence for multiple distinct sequences.")
 
+# write the large per-sample QC table
 def write_summary_qc_section():
     print(r"\section{Sample-level QC}")
     print(r"This table contains QC metrics and warning flags for each sample within this sequencing run.")
@@ -231,6 +246,7 @@ def write_summary_qc_section():
     tf.table_spec = "{|c|C{1.3cm}|C{1.3cm}|C{1.0cm}|C{1.0cm}|C{1.0cm}|c|c|C{1.2cm}|C{4.0cm}|}"
     tsv_to_table(args.summary_qc_table.format(run_name=args.run_name), tf)
 
+# parse arguments, defaults are based on ncov-tools paths/filenames
 parser = argparse.ArgumentParser()
 parser.add_argument('--negative-control-depth-figure', type=str, default="plots/{run_name}_depth_by_position_negative_control.pdf")
 parser.add_argument('--negative-control-table', type=str, default="qc_reports/{run_name}_negative_control_report.tsv")
@@ -243,7 +259,7 @@ parser.add_argument('--run-name', type=str, default="", required=True)
 args = parser.parse_args()
 
 #
-# Generate each section of the report
+# Generate report
 #
 write_preamble()
 
