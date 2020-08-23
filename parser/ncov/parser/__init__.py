@@ -6,3 +6,4 @@ from .PerBaseCoverage import *
 from .Variants import *
 from .Vcf import *
 from .NegativeControl import *
+from .primers import *
