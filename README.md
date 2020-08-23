@@ -131,6 +131,27 @@ tree_include_consensus: some_genomes_from_gisaid.fasta
 assign_lineages: true
 ```
 
+#
+# this flag identifies the sequencing platform used, valid options are:
+# `illumina' or 'oxford-nanopore`
+platform: illumina
+
+#
+# define the location of the primer BED file
+#
+primer_bed: nCoV-2019.bed
+
+#
+# set to true if primers and overlapping regions are to be removed from the
+# BED file
+remove_primer: True
+
+#
+# in conjunction with `remove_primer`, identify the number of bases to offset
+# for the removal of overlapping regions
+#
+offset: 30
+
 ## Running
 
 After configuration, you can run the pipeline using Snakemake
