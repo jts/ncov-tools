@@ -55,11 +55,13 @@ def create_primer_pairs(primers, left='_LEFT.*', right='_RIGHT.*'):
             primer_pairs[primer_id] = dict()
 
         if re.search(left, primer['Primer_ID']):
+            primer_pairs[primer_id]['left_ref'] = primer['chrom']
             primer_pairs[primer_id]['left_name'] = primer['Primer_ID']
             primer_pairs[primer_id]['left_start'] = int(primer['start'])
             primer_pairs[primer_id]['left_end'] = int(primer['end'])
             primer_pairs[primer_id]['primer_pool'] = primer['PoolName']
         elif re.search(right, primer['Primer_ID']):
+            primer_pairs[primer_id]['right_ref'] = primer['chrom']
             primer_pairs[primer_id]['right_name'] = primer['Primer_ID']
             primer_pairs[primer_id]['right_start'] = int(primer['start'])
             primer_pairs[primer_id]['right_end'] = int(primer['end'])
@@ -69,94 +71,53 @@ def create_primer_pairs(primers, left='_LEFT.*', right='_RIGHT.*'):
             print(primer)
     return primer_pairs
 
-def create_amplicon_range(primer_pairs, pattern):
+
+def create_amplicons(primer_pairs, offset=0, type='unique_amplicons'):
     '''
-    Convert the primer pairs to a BED formatted amplicon range list.
+    Create an array of BED regions as either full including primers, with no
+    primers included, or as unique amplicons without overlaps.
 
     Arguments:
-        * primer_pairs:     output from the create_primer_pairs function
-        * pattern:          pattern in the amplicon key to get the amplicon
-                            number
-
+        * primer_pairs:         a dictionary containing primer pair details output from
+                                create_primer_pairs()
+        * offset:               offset used for to remove as padding (default: 0)
+        * type:                 type of BED file to create ('full', 'no_primers', 'unique_amplicon')
+    
     Return Values:
-        Returns a list of amplicon ranges in BED format
+        Return a list containing the type specific amplicon region in BED format.
     '''
-    amplicon_range = []
-    for amplicon in primer_pairs:
-        if all (k in primer_pairs[amplicon] for k in ('left_start', 'right_end')):
-            amplicon_num = re.sub(pattern, '', amplicon)
-            amplicon_range.append(create_bed_item(ref='MN908947.3',
-                                                start=primer_pairs[amplicon]['left_end'],
-                                                end=primer_pairs[amplicon]['right_start'],
-                                                name=amplicon_num,
-                                                score=primer_pairs[amplicon]['primer_pool'],
-                                                strand='+'))
-    return amplicon_range
-
-
-def create_bed_item(ref, start, end, name, score, strand):
-    '''
-    Create a BED formatted list.
-
-    Arguments:
-        * ref: reference for genome/chromosome
-        * start: start position for amplicon
-        * end: end position for amplicon
-        * name: name of amplicon
-        * score: score of amplicon
-        * strand: strand of the amplicon
-
-    Return Values:
-        Returns a list
-    '''
-    return [str(ref),
-            str(start),
-            str(end),
-            str(name),
-            str(score),
-            str(strand)]
-
-
-def create_unique_amplicons(amplicons, offset=30):
-    '''
-    Create a list of unique regions from the amplicons.
-
-    Arguments:
-        * amplicons:    a list of amplicons in BED format from
-                        create_amplicon_range
-        * offset:       nucleotide count offset (default: 30) 
-    '''
-    unique_amplicons = []
-    for index in range(0, len(amplicons)):
-        if index == 0:
-            tmp_amplicon = [
-                amplicons[index][0],
-                amplicons[index][1],
-                str(int(amplicons[index+1][1]) - int(offset)),
-                amplicons[index][3],
-                amplicons[index][4],
-                amplicons[index][5]
-            ]
-        elif index == len(amplicons)-1:
-            tmp_amplicon = [
-                amplicons[index][0],
-                str(int(amplicons[index-1][2]) + int(offset)),
-                amplicons[index][2],
-                amplicons[index][3],
-                amplicons[index][4],
-                amplicons[index][5]
-            ]
-        else:
-            tmp_amplicon = [
-                amplicons[index][0],
-                str(int(amplicons[index-1][2]) + int(offset)),
-                str(int(amplicons[index+1][1]) - int(offset)),
-                amplicons[index][3],
-                amplicons[index][4],
-                amplicons[index][5]
-            ]
-        unique_amplicons.append(tmp_amplicon)
-    return unique_amplicons
+    bed_types = ['full', 'no_primers', 'unique_amplicons']
+    if type not in bed_types:
+        sys.exit('Invalid type option')
+    amplicons = list()
+    for index in range(0, len(primer_pairs)):
+        amplicon_id = index + 1
+        primer_name = f'nCoV-2019_{amplicon_id}'
+        previous_primer_name = f'nCoV-2019_{amplicon_id-1}'
+        next_primer_name = f'nCoV-2019_{amplicon_id + 1}'
+        if type == 'full':
+            start = int(primer_pairs[primer_name]['left_start']) + int(offset)
+            end = int(primer_pairs[primer_name]['right_end']) - int(offset)
+        elif type == 'no_primers':
+            start = int(primer_pairs[primer_name]['left_end']) + int(offset)
+            end = int(primer_pairs[primer_name]['right_start']) - int(offset)
+        elif type == 'unique_amplicons':
+            if index == 0:
+                start = int(primer_pairs[primer_name]['left_end']) + int(offset)
+                end = min(int(primer_pairs[primer_name]['right_start']), int(primer_pairs[next_primer_name]['left_start'])) - int(offset)
+            elif index == len(primer_pairs) - 1:
+                start = max(int(primer_pairs[primer_name]['left_end']), int(primer_pairs[previous_primer_name]['right_end'])) + int(offset)
+                end = int(primer_pairs[primer_name]['right_start']) - int(offset)
+            else:
+                start = max(int(primer_pairs[primer_name]['left_end']), int(primer_pairs[previous_primer_name]['right_end'])) + int(offset)
+                end = min(int(primer_pairs[primer_name]['right_start']), int(primer_pairs[next_primer_name]['left_start'])) - int(offset)
+        amplicons.append([str(primer_pairs[primer_name]['left_ref']),
+                          str(start),
+                          str(end),
+                          str(primer_name),
+                          str(primer_pairs[primer_name]['primer_pool']),
+                          '+'])
+    return amplicons
 
 
 # the code here to the end of the file was obtained from the ARTIC pipeline
