@@ -63,6 +63,21 @@ def get_primer_offset(wildcards):
     '''
     return config.get("primer_offset", "30")
 
+def get_remove_primers_opt(wildcards):
+    return config.get("remove_primers", "")
+
+def get_amplicon_bed_remove_primer_opt(wildcards):
+    '''
+    If config.yaml has 'remove_primer:' option set to True, set the '--remove_primers' option.
+    '''
+    remove_primer_opt = get_remove_primers_opt(wildcards)
+    if remove_primer_opt == 'True':
+        return '--remove_primers'
+    elif remove_primer_opt == 'False':
+        return ''
+    else:
+        return '--remove_primers'
+
 def get_negative_control_samples():
     if "negative_control_samples" in config:
         return config["negative_control_samples"]
@@ -555,6 +570,7 @@ rule make_amplicon_bed:
         "bed/amplicon.bed"
     params:
         script="primers_to_amplicons.py",
-        offset=get_primer_offset
+        offset=get_primer_offset,
+        remove_primer_opt=get_amplicon_bed_remove_primer_opt
     shell:
-        "{params.script} --primers {input.primers} --offset {params.offset} --remove_primers --output {output}"
+        "{params.script} --primers {input.primers} --offset {params.offset} {params.remove_primer_opt} --output {output}"
