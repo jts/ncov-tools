@@ -237,13 +237,18 @@ rule all_qc_reports:
     input:
         get_qc_reports
 
+rule create_amplicon_bed:
+    input:
+        "bed/amplicon.bed"
+
 #
 # generate coverage QC data using bedtools
 #
 rule make_amplicon_mean_coverage:
     input:
         bam=get_bam_for_sample,
-        bed=get_amplicon_bed
+        #bed=get_amplicon_bed
+        bed="bed/amplicon.bed"
     output:
         "qc_sequencing/{sample}.mean_coverage.bed"
     params:
@@ -256,7 +261,8 @@ rule make_amplicon_mean_coverage:
 rule make_amplicon_coverage:
     input:
         bam=get_bam_for_sample,
-        bed=get_amplicon_bed
+        #bed=get_amplicon_bed
+        bed="bed/amplicon.bed"
     output:
         "qc_sequencing/{sample}.amplicon_coverage.bed"
     params:
@@ -269,7 +275,8 @@ rule make_amplicon_coverage:
 rule make_amplicon_depth:
     input:
         bam=get_bam_for_sample,
-        bed=get_amplicon_bed
+        #bed=get_amplicon_bed
+        bed="bed/amplicon.bed"
     output:
         "qc_sequencing/{sample}.amplicon_depth.bed"
     params:
@@ -282,7 +289,8 @@ rule make_amplicon_depth:
 rule make_amplicon_base_coverage:
     input:
         bam=get_bam_for_sample,
-        bed=get_amplicon_bed
+        #bed=get_amplicon_bed
+        bed="bed/amplicon.bed"
     output:
         "qc_sequencing/{sample}.amplicon_base_coverage.bed"
     params:
@@ -544,7 +552,7 @@ rule make_amplicon_bed:
     input:
         primers=get_primer_bed
     output:
-        "qc_analysis/amplicon.bed"
+        "bed/amplicon.bed"
     params:
         script="primers_to_amplicons.py",
         offset=get_primer_offset
