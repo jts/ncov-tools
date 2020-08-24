@@ -144,7 +144,7 @@ primer_bed: nCoV-2019.bed
 #
 # set to true if primers and overlapping regions are to be removed from the
 # BED file
-remove_primer: True
+remove_primers: True
 
 #
 # in conjunction with `remove_primer`, identify the number of bases to offset
