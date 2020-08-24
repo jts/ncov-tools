@@ -12,8 +12,6 @@ parser.add_argument('-p', '--primers', help='Primer scheme in BED format')
 parser.add_argument('--offset', default=0, help='Primer offset for coordinates')
 parser.add_argument('-o', '--output', default='out.bed',
                     help='filename to write BED to')
-parser.add_argument('--pattern', default='nCoV-2019_',
-                    help='amplicon name pattern')
 parser.add_argument('--bed_type', default='unique_amplicons',
                     help='type of BED to produce (e.g. full, no_primers, unique-amplicons')
 if len(sys.argv) <= 1:
