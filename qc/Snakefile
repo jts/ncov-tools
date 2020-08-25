@@ -24,7 +24,7 @@ def get_variants_pattern():
 def get_metadata_file(wildcards):
     return config.get("metadata", "").format(data_root=config["data_root"])
 
-def get_run_name():
+def get_run_name(wildcards=None):
     return config.get("run_name", "default")
 
 def get_sample_names():
@@ -320,7 +320,7 @@ rule make_genome_per_base_coverage:
         bam=get_bam_for_sample,
         bed="bed/genome.bed"
     output:
-        "qc_sequencing/{sample}.per_base_coverage.bed"
+        "{directory}/{sample}.per_base_coverage.bed"
     params:
         memory_per_thread="2G"
     threads: 1
@@ -447,6 +447,17 @@ rule make_qc_plot_depth_by_position:
     shell:
         "Rscript {params.plot_script} depth_by_position {wildcards.prefix} {params.metadata}"
 
+rule make_qc_plot_depth_by_position_negative_controls:
+    input:
+        expand("qc_sequencing_negative_control/{s}.per_base_coverage.bed", s=get_negative_control_samples())
+    output:
+        "plots/{prefix}_depth_by_position_negative_control.pdf"
+    params:
+        plot_script = srcdir("plot_qc_sequencing.R"),
+        metadata=get_metadata_file
+    shell:
+        "Rscript {params.plot_script} negative_control_depth_by_position {wildcards.prefix} {params.metadata}"
+
 rule make_qc_plot_amplicon_depth_by_ct:
     input:
         files=expand("qc_sequencing/{s}.amplicon_depth.bed", s=get_sample_names()),
@@ -565,3 +576,28 @@ rule make_amplicon_bed:
         bed_type_opt=get_primer_bed_type_opt
     shell:
         "{params.script} --primers {input.primers} --offset {params.offset} --bed_type {params.bed_type_opt} --output {output}"
+
+rule make_report_tex:
+    input:
+        get_qc_reports,
+        "plots/{prefix}_tree_snps.pdf",
+        "plots/{prefix}_depth_by_position_negative_control.pdf"
+    output:
+        "qc_reports/{prefix}.tex"
+    params:
+        script=srcdir("generate_report.py"),
+        run_name=get_run_name
+    shell:
+        "python {params.script} --run-name {params.run_name} > {output}"
+
+rule make_report_pdf:
+    input:
+        "qc_reports/{prefix}.tex"
+    output:
+        "qc_reports/{prefix}.pdf"
+    shell:
+        # The long table package needs pdflatex to be run up to 3 times
+        # to correctly typeset the tables
+        "pdflatex -output-directory qc_reports {input} &&"
+        "pdflatex -output-directory qc_reports {input} &&"
+        "pdflatex -output-directory qc_reports {input}"

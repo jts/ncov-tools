@@ -34,9 +34,9 @@ plot_depth_per_base <- function(df, metadata, outname)
     merged$label = paste(merged$sample, " Ct: ", merged$ct, sep="")
 
     num_samples = length(unique(merged$sample))
-    plots_per_page = 8
+    plots_per_page = min(8, num_samples)
 
-    pdf(outname, width=8, height=16)
+    pdf(outname, width=8, height=2*plots_per_page)
 
     for(i in seq(1, ceiling(num_samples / plots_per_page))) {
         # bedtools coverage reports the position along the interval, adding start gives
@@ -44,7 +44,7 @@ plot_depth_per_base <- function(df, metadata, outname)
         p <- ggplot(merged, aes(x=start + position, y=depth)) +
             geom_line() +
             scale_y_log10() +
-            facet_wrap_paginate(. ~ label, nrow=8, ncol=1, page=i) +
+            facet_wrap_paginate(. ~ label, nrow=plots_per_page, ncol=1, page=i) +
             xlab("Genome position (nt)") +
             theme_bw()
         print(p)
@@ -124,6 +124,12 @@ if(!interactive()) {
 
         df <- read_glob("qc_sequencing", "*.per_base_coverage.bed")
         outname = sprintf("plots/%s_depth_by_position.pdf", prefix)
+        plot_depth_per_base(df, metadata, outname)
+
+    } else if(command == "negative_control_depth_by_position") {
+
+        df <- read_glob("qc_sequencing_negative_control", "*.per_base_coverage.bed")
+        outname = sprintf("plots/%s_depth_by_position_negative_control.pdf", prefix)
         plot_depth_per_base(df, metadata, outname)
 
     } else if(command == "amplicon_depth_by_ct") {
