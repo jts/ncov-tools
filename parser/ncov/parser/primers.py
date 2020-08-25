@@ -96,21 +96,27 @@ def create_amplicons(primer_pairs, offset=0, type='unique_amplicons'):
         previous_primer_name = f'nCoV-2019_{amplicon_id-1}'
         next_primer_name = f'nCoV-2019_{amplicon_id + 1}'
         if type == 'full':
-            start = int(primer_pairs[primer_name]['left_start']) + int(offset)
-            end = int(primer_pairs[primer_name]['right_end']) - int(offset)
+            start = int(primer_pairs[primer_name]['left_start'])
+            end = int(primer_pairs[primer_name]['right_end'])
         elif type == 'no_primers':
-            start = int(primer_pairs[primer_name]['left_end']) + int(offset)
-            end = int(primer_pairs[primer_name]['right_start']) - int(offset)
+            start = int(primer_pairs[primer_name]['left_end'])
+            end = int(primer_pairs[primer_name]['right_start'])
         elif type == 'unique_amplicons':
-            if index == 0:
-                start = int(primer_pairs[primer_name]['left_end']) + int(offset)
-                end = min(int(primer_pairs[primer_name]['right_start']), int(primer_pairs[next_primer_name]['left_start'])) - int(offset)
-            elif index == len(primer_pairs) - 1:
-                start = max(int(primer_pairs[primer_name]['left_end']), int(primer_pairs[previous_primer_name]['right_end'])) + int(offset)
-                end = int(primer_pairs[primer_name]['right_start']) - int(offset)
+
+            if index > 0:
+                start = max(int(primer_pairs[primer_name]['left_end']), int(primer_pairs[previous_primer_name]['right_end']))
             else:
-                start = max(int(primer_pairs[primer_name]['left_end']), int(primer_pairs[previous_primer_name]['right_end'])) + int(offset)
-                end = min(int(primer_pairs[primer_name]['right_start']), int(primer_pairs[next_primer_name]['left_start'])) - int(offset)
+                start = int(primer_pairs[primer_name]['left_end'])
+
+            if index < len(primer_pairs) - 1:
+                end = min(int(primer_pairs[primer_name]['right_start']), int(primer_pairs[next_primer_name]['left_start']))
+            else:
+                end = int(primer_pairs[primer_name]['right_start'])
+
+        # apply offsets
+        start += int(offset)
+        end -= int(offset)
+
         amplicons.append([str(primer_pairs[primer_name]['left_ref']),
                           str(start),
                           str(end),
