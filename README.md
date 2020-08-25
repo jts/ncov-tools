@@ -72,6 +72,19 @@ reference_genome: resources/artic_reference.fasta
 
 # the sequencing platform used, can be "oxford-nanopore" or "illumina"
 platform: "oxford-nanopore"
+
+# path to the BED file containing the primers, this should follow the format downloaded from
+# the ARTIC primer
+primer_bed: nCoV-2019.bed
+
+# list the type of amplicon BED file that will be created from the "primer_bed".  This can include:
+# full -- amplicons including primers and overlaps listed in the primer BED file
+# no_primers -- amplicons including overlaps but with primers removed
+# unique_amplicons -- distinct amplicons regions with primers and overlapping regions removed
+bed_type: unique_amplicons
+
+# offset for the amplicons and primers
+offset: 0
 ```
 
 The pipeline is designed to work with the results of `ivar` (illumina) or the artic-ncov2019/fieldbioinformatics workflow (oxford nanopore). It will automatically detect the names of the output files (BAMs, consensus fasta, variants) from these workflows using the `platform` value. If you used a different workflow, you can set the following options to help the pipeline find your files:
@@ -130,27 +143,6 @@ tree_include_consensus: some_genomes_from_gisaid.fasta
 #
 assign_lineages: true
 ```
-
-#
-# this flag identifies the sequencing platform used, valid options are:
-# `illumina' or 'oxford-nanopore`
-platform: illumina
-
-#
-# define the location of the primer BED file
-#
-primer_bed: nCoV-2019.bed
-
-#
-# set to true if primers and overlapping regions are to be removed from the
-# BED file
-remove_primers: True
-
-#
-# in conjunction with `remove_primer`, identify the number of bases to offset
-# for the removal of overlapping regions
-#
-offset: 30
 
 ## Running
 
