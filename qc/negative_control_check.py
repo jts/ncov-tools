@@ -41,7 +41,7 @@ for fn in files:
         for row in reader:
             position = int(row["start"]) + int(row["position"])
             depth = int(row["depth"])
-            amplicon_id = int(row["amplicon_id"])
+            amplicon_id = int(row["amplicon_id"].split("_")[1])
 
             #
             genome_coverage.update(position, depth)
