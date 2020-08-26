@@ -65,10 +65,11 @@ def count_tsv(filename):
     return c
 
 def format_ct(s):
-    if s == "NA":
-        return "NA"
-    else:
+
+    try:
         return "%.1f" % (float(s))
+    except:
+        return "NA"
 
 def escape_latex(s):
     return s.replace("_", "\_")
@@ -140,35 +141,45 @@ def write_negative_control_section():
 
     print(r"\section{Negative Control}")
 
-    plot_path = args.negative_control_depth_figure.format(run_name=args.run_name)
-    nc_depth_figures = pdf_to_png(plot_path)
 
-    # plot each depth image for the negative control samples
-    for depth_png in nc_depth_figures:
-        write_image(depth_png, 0.75)
+    plot_path = args.negative_control_depth_figure.format(run_name=args.run_name)
+
+    if os.path.exists(plot_path):
+        nc_depth_figures = pdf_to_png(plot_path)
+
+        # plot each depth image for the negative control samples
+        for depth_png in nc_depth_figures:
+            write_image(depth_png, 0.75)
+    else:
+        print(r"Negative control depth plots not found.")
+
 
     # write summary table
     table_path = args.negative_control_table.format(run_name=args.run_name)
     
-    # set up TableFormatter to transform the tsv into a nicer display
-    tf = TableFormatter()
+    if os.path.exists(table_path):
 
-    # map to rename header columns into more interpretable names
-    tf.name_map = { "file" : "Sample",
-                    "genome_covered_bases" : "Covered",
-                    "genome_total_bases" : "Target Footprint",
-                    "genome_covered_fraction" : "Percent Covered",
-                    "amplicons_detected" : "Amplicons Detected" 
-                  }
+        # set up TableFormatter to transform the tsv into a nicer display
+        tf = TableFormatter()
 
-    # map to transform selected row columns into more readable values
-    tf.row_func = { "file" : lambda value : filename_to_sample(value),
-                    "amplicons_detected" : lambda value : value.replace(",", ", "), 
-                    "genome_covered_fraction" : lambda value : "%.1f" % (float(value) * 100.0)
-                  }
+        # map to rename header columns into more interpretable names
+        tf.name_map = { "file" : "Sample",
+                        "genome_covered_bases" : "Covered",
+                        "genome_total_bases" : "Target Footprint",
+                        "genome_covered_fraction" : "Percent Covered",
+                        "amplicons_detected" : "Amplicons Detected" 
+                      }
 
-    tf.table_spec = "|c|c|c|c|c|p{5cm}|"
-    tsv_to_table(table_path, tf)
+        # map to transform selected row columns into more readable values
+        tf.row_func = { "file" : lambda value : filename_to_sample(value),
+                        "amplicons_detected" : lambda value : value.replace(",", ", "), 
+                        "genome_covered_fraction" : lambda value : "%.1f" % (float(value) * 100.0)
+                      }
+
+        tf.table_spec = "|c|c|c|c|c|p{5cm}|"
+        tsv_to_table(table_path, tf)
+    else:
+        print(r"Negative control summary table not found.")
     return
 
 # write the section of the report containing the tree-snps plot

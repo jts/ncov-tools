@@ -210,6 +210,13 @@ def get_qc_reports(wildcards):
         out.append(get_negative_control_report(wildcards))
     return out
 
+def get_report_tex_input(wildcards):
+    out = get_qc_reports(wildcards)
+    out.append("plots/%s_tree_snps.pdf" % (wildcards.prefix))
+    if len(get_negative_control_samples()) > 0:
+        out.append("plots/%s_depth_by_position_negative_control.pdf" % (wildcards.prefix))
+    return out
+
 def get_final_pdf_report(wildcards):
     rn = get_run_name()
     return "qc_reports/%s.pdf" % (rn)
@@ -589,9 +596,7 @@ rule make_amplicon_bed:
 
 rule make_report_tex:
     input:
-        get_qc_reports,
-        "plots/{prefix}_tree_snps.pdf",
-        "plots/{prefix}_depth_by_position_negative_control.pdf"
+        get_report_tex_input
     output:
         "qc_reports/{prefix}.tex"
     params:
