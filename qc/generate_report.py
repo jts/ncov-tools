@@ -64,6 +64,12 @@ def count_tsv(filename):
             c += 1
     return c
 
+def format_ct(s):
+    if s == "NA":
+        return "NA"
+    else:
+        return "%.1f" % (float(s))
+
 def escape_latex(s):
     return s.replace("_", "\_")
 
@@ -240,7 +246,8 @@ def write_summary_qc_section():
                     "qc_pass" : "QC flags" }
 
     tf.row_func = { "qc_pass" : lambda value : value.replace(",", ", ").replace("POSSIBLE_FRAMESHIFT_INDELS", "POSSIBLE_FRAMESHIFT"),
-                    "genome_completeness" : lambda value : "%.1f" % (float(value) * 100.0) }
+                    "genome_completeness" : lambda value : "%.1f" % (float(value) * 100.0),
+                    "qpcr_ct" : lambda value : format_ct(value) }
 
     tf.column_filter = [ "run_name", "mean_sequencing_depth", 
                          "median_sequencing_depth", "num_consensus_n", 
