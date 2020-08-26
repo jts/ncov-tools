@@ -198,15 +198,21 @@ def get_ambiguous_report(wildcards):
     return "qc_reports/%s_ambiguous_position_report.tsv" % (rn)
 
 def get_qc_reports(wildcards):
-    out = [ get_qc_summary(wildcards),
-            get_mixture_report(wildcards),
-            get_ambiguous_report(wildcards)
-          ]
+    out = [ get_qc_summary(wildcards) ]
+
+    # currently these reports are only generated for illumina data
+    if config.get("platform") == "illumina":
+        out.append(get_mixture_report(wildcards))
+        out.append(get_ambiguous_report(wildcards))
 
     # only try to make negative control report if NC samples have been defined
     if len(get_negative_control_samples()) > 0:
         out.append(get_negative_control_report(wildcards))
     return out
+
+def get_final_pdf_report(wildcards):
+    rn = get_run_name()
+    return "qc_reports/%s.pdf" % (rn)
 
 #
 # top-level rules
@@ -242,6 +248,10 @@ rule all_ambiguous_report:
 rule all_qc_reports:
     input:
         get_qc_reports
+
+rule all_final_report:
+    input:
+        get_final_pdf_report
 
 rule create_amplicon_bed:
     input:
@@ -586,9 +596,10 @@ rule make_report_tex:
         "qc_reports/{prefix}.tex"
     params:
         script=srcdir("generate_report.py"),
-        run_name=get_run_name
+        run_name=get_run_name,
+        platform_opt=get_platform_opt
     shell:
-        "python {params.script} --run-name {params.run_name} > {output}"
+        "python {params.script} --run-name {params.run_name} {params.platform_opt} > {output}"
 
 rule make_report_pdf:
     input:

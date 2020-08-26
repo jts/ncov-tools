@@ -176,44 +176,50 @@ def write_tree_section():
     # Ambiguity subsection
     print(r"\subsection{Ambiguity Report}")
 
-    ambiguity_filename = args.ambiguity_table.format(run_name=args.run_name)
-    row_count = count_tsv(ambiguity_filename)
+    if args.platform == "illumina":
+        ambiguity_filename = args.ambiguity_table.format(run_name=args.run_name)
+        row_count = count_tsv(ambiguity_filename)
 
-    if row_count == 0:
-        print(r"No positions in the genome had an ambiguous consensus base (IUPAC, but not N) in multiple samples.")
+        if row_count == 0:
+            print(r"No positions in the genome had an ambiguous consensus base (IUPAC, but not N) in multiple samples.")
+        else:
+            s = "This table reports positions in the genome that had an ambiguous consensus base"\
+                " (IUPAC, but not N) in multiple samples. This can be evidence of contamination"\
+                " so these positions should be investigated."
+            print(s)
+
+            # Make the ambiguity table
+            tf = TableFormatter()
+            tf.name_map = { "position" : "Genome Position",
+                            "count"    : "Number of ambiguous samples",
+                            "alleles"  : "Observed Alleles" }
+            tf.row_func = dict()
+            tf.table_spec = "{|c|c|c|}"
+            tsv_to_table(args.ambiguity_table.format(run_name=args.run_name), tf)
     else:
-        s = "This table reports positions in the genome that had an ambiguous consensus base"\
-            " (IUPAC, but not N) in multiple samples. This can be evidence of contamination"\
-            " so these positions should be investigated."
-        print(s)
+        print(r"The ambiguity report is not currently supported for Oxford Nanopore data")
 
-        # Make the ambiguity table
-        tf = TableFormatter()
-        tf.name_map = { "position" : "Genome Position",
-                        "count"    : "Number of ambiguous samples",
-                        "alleles"  : "Observed Alleles" }
-        tf.row_func = dict()
-        tf.table_spec = "{|c|c|c|}"
-        tsv_to_table(args.ambiguity_table.format(run_name=args.run_name), tf)
-    
     # Mixture/Contamination subsection
     print(r"\subsection{Mixture Report}")
     
     # The mixture table can be quite large so we report the samples as a list
-    mixture_report_fn = args.mixture_table.format(run_name=args.run_name)
-    mixture_samples = set()
-    with(open(mixture_report_fn)) as f:
-        reader = csv.DictReader(f, delimiter="\t")
-        for row in reader:
-            mixture_samples.add(row['sample_a'])
-    
-    if len(mixture_samples) > 0:
-        s = "The following samples were detected by \\texttt{mixture\_report.py} as having"\
-            " read evidence for multiple distinct sequences. These samples should be checked"\
-            " for contamation: "
-        print(s + ", ".join([ "\\textbf{%s}" % escape_latex(a) for a in mixture_samples]) + ".")
+    if args.platform == "illumina":
+        mixture_report_fn = args.mixture_table.format(run_name=args.run_name)
+        mixture_samples = set()
+        with(open(mixture_report_fn)) as f:
+            reader = csv.DictReader(f, delimiter="\t")
+            for row in reader:
+                mixture_samples.add(row['sample_a'])
+        
+        if len(mixture_samples) > 0:
+            s = "The following samples were detected by \\texttt{mixture\_report.py} as having"\
+                " read evidence for multiple distinct sequences. These samples should be checked"\
+                " for contamation: "
+            print(s + ", ".join([ "\\textbf{%s}" % escape_latex(a) for a in mixture_samples]) + ".")
+        else:
+            print(r"No samples were detected by \texttt{mixture\_report.py} as having read evidence for multiple distinct sequences.")
     else:
-        print(r"No samples were detected by \texttt{mixture\_report.py} as having read evidence for multiple distinct sequences.")
+        print("The mixture report is not currently supported for Oxford Nanopore data")
 
 # write the large per-sample QC table
 def write_summary_qc_section():
@@ -252,6 +258,7 @@ parser.add_argument('--mixture-table', type=str, default="qc_reports/{run_name}_
 parser.add_argument('--summary-qc-table', type=str, default="qc_reports/{run_name}_summary_qc.tsv")
 parser.add_argument('--negative-control-tsv', type=str, default="")
 parser.add_argument('--run-name', type=str, default="", required=True)
+parser.add_argument('--platform', type=str, default="", required=True)
 args = parser.parse_args()
 
 #
