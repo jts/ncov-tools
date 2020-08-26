@@ -22,6 +22,7 @@ dependencies:
   - poppler
   - numpy=1.19.1
   - biopython
+  - texlive-core
   - pip:
       - dendropy>=4.4.0
       - pyvcf
