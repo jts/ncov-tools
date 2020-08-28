@@ -7,6 +7,8 @@
 # 0.01              2020-06-16      Richard J. de Borja     Initial development
 # 0.02              2020-07-09      Richard J. de Borja     Adjusted PDF page height for large
 #                                                           sample numbers
+# 0.03              2020-08-27      Richard J. de Borja     Added output for table of amplicon
+#                                                           coverage
 ### PREAMBLE ######################################################################################
 library(argparse)
 
@@ -19,6 +21,8 @@ parser <- ArgumentParser()
 parser$add_argument("-p", "--path", default=".", help="full path to the coverage files")
 parser$add_argument("-o", "--output", default="amplicon_coverage_heatmap.pdf",
                     help="filename to use for plot output")
+parser$add_argument("-t", "--table", default="amplicon_coverage_table.tsv",
+                    help="filename to use for table output")
 args <- parser$parse_args()
 
 # Set the environment
@@ -71,20 +75,45 @@ get_amplicon_coverage_files <- function(path='.', pattern='.amplicon_coverage.be
   return(amp_cov_df)
 }
 
+get_amplicon_depth_files <- function(path='.', pattern='.amplicon_depth.bed') {
+  files <- list.files(
+    path=path,
+    pattern=pattern,
+    recursive=TRUE,
+    full.names=TRUE
+  )
+  df <- data.frame(matrix(ncol=2, nrow=length(files)))
+  colnames(df) <- c('sample', 'file')
+  for(i in 1:length(files)) {
+    sample_name <- gsub(pattern=pattern, replacement='', x=basename(files[i]))
+    df$sample[i] <- sample_name
+    df$file[i] <- files[i]
+  }
+  return(df)
+}
 
 ### GET DATA ######################################################################################
 path <- args$path
-amp_cov_files <- get_amplicon_coverage_files(path=path)
+amp_cov_files <- get_amplicon_depth_files(path=path)
 cov_data <- data.frame()
 for(i in 1:nrow(amp_cov_files)) {
   tmp_data <- import_amplicon_coverage(file=amp_cov_files$file[i], sample=amp_cov_files$sample[i])
-  tmp_data_df <- tmp_data %>% dplyr::select(amplicon_id, sample, read_count)
-  tmp_data_df$amplicon_id <- paste(sep='', 'amp', tmp_data_df$amplicon_id)
+  tmp_data_df <- tmp_data %>% dplyr::select(amplicon_id, sample, mean_depth)
+  tmp_data_df$amplicon_id <- paste(
+    sep='', 'amp',
+    gsub(x=tmp_data_df$amplicon_id, pattern='nCoV-2019_', replacement=''))
   cov_data <- rbind(cov_data, tmp_data_df)
 }
 
 ### PROCESS DATA ##################################################################################
-cov_data_df <- as.data.frame(cov_data %>% pivot_wider(names_from=amplicon_id, values_from=read_count))
+cov_data_df <- as.data.frame(cov_data %>% pivot_wider(names_from=amplicon_id, values_from=mean_depth))
+write.table(
+  x=cov_data_df,
+  file=args$table,
+  quote=FALSE,
+  row.names=FALSE,
+  sep='\t'
+)
 rownames(cov_data_df) <- cov_data_df$sample
 cov_data_df <- cov_data_df[,2:ncol(cov_data_df)]
 num_samples <- nrow(cov_data_df)

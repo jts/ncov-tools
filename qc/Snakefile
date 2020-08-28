@@ -445,13 +445,14 @@ rule make_lineage_assignments:
 #
 rule make_qc_plot_amplicon_coverage_heatmap:
     input:
-        expand("qc_sequencing/{s}.amplicon_coverage.bed", s=get_sample_names())
+        expand("qc_sequencing/{s}.amplicon_depth.bed", s=get_sample_names())
     output:
-        "plots/{prefix}_amplicon_coverage_heatmap.pdf"
+        plot="plots/{prefix}_amplicon_coverage_heatmap.pdf",
+        table="qc_analysis/{prefix}_amplicon_coverage_table.tsv"
     params:
         plot_script = srcdir("plot_amplicon_coverage_heatmap.R")
     shell:
-        "Rscript {params.plot_script} --path qc_sequencing --output {output}"
+        "Rscript {params.plot_script} --path qc_sequencing --output {output.plot} --table {output.table}"
 
 rule make_qc_plot_depth_by_position:
     input:
