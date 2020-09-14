@@ -226,7 +226,7 @@ def get_annotated_variants(wildcards):
     out = [pattern.format(sample=s) for s in get_sample_names()]
     return out
 
-def get_sarscov2db_opt():
+def get_sarscov2db_opt(wildcards):
     return config.get("sarscov2db", "")
 
 #
@@ -640,9 +640,9 @@ rule run_table_annovar:
         script="table_annovar.pl",
         buildver="NC_045512v2",
         sarscov2db=get_sarscov2db_opt,
-        outfile="qc_sequencing/{sample}"
+        outfile="qc_annotation/{sample}"
     shell:
-        "{params.script} --buildver {params.buildver} {sarscov2db} -protocol avGene -operation g --remove --otherinfo --outfile {params.outfile}"
+        "{params.script} --buildver {params.buildver} {input} {params.sarscov2db} -protocol avGene -operation g --remove --otherinfo --outfile {params.outfile}"
 
 rule make_annovar_input:
     input:
