@@ -637,7 +637,7 @@ rule run_table_annovar:
     output:
         "qc_annotation/{sample}.NC_045512v2_multianno.txt"
     params:
-        script=table_annovar.pl,
+        script="table_annovar.pl",
         buildver="NC_045512v2",
         sarscov2db=get_sarscov2db_opt,
         outfile="qc_sequencing/{sample}"
