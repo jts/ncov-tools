@@ -221,6 +221,14 @@ def get_final_pdf_report(wildcards):
     rn = get_run_name()
     return "qc_reports/%s.pdf" % (rn)
 
+def get_annotated_variants(wildcards):
+    pattern = "qc_annotation/{sample}.NC_045512v2_multianno.txt"
+    out = [pattern.format(sample=s) for s in get_sample_names()]
+    return out
+
+def get_sarscov2db_opt():
+    return config.get("sarscov2db", "")
+
 #
 # top-level rules
 #
@@ -263,6 +271,10 @@ rule all_final_report:
 rule create_amplicon_bed:
     input:
         "bed/amplicon.bed"
+
+rule annovate_variants:
+    input:
+        get_annotated_variants
 
 #
 # generate coverage QC data using bedtools
@@ -618,3 +630,27 @@ rule make_report_pdf:
         "pdflatex -output-directory qc_reports {input} &&"
         "pdflatex -output-directory qc_reports {input} &&"
         "pdflatex -output-directory qc_reports {input}"
+
+rule run_table_annovar:
+    input:
+        "qc_annotation/{sample}.avinput"
+    output:
+        "qc_annotation/{sample}.NC_045512v2_multianno.txt
+    params:
+        script=table_annovar.pl,
+        buildver="NC_045512v2",
+        sarscov2db=get_sarscov2db_opt,
+        outfile="qc_sequencing/{sample}"
+    shell:
+        "{params.script} --buildver {params.buildver} {sarscov2db} -protocol avGene -operation g --remove --otherinfo --outfile {params.outfile}"
+
+rule make_annovar_input:
+    input:
+        samplevariant=get_variants
+    output:
+        "qc_annotation/{sample}.avinput"
+    params:
+        script=srcdir("create_annovar_input.py")
+    shell:
+        "python {params.script} --file {input.samplevariant} --output {output}"
+
