@@ -272,7 +272,7 @@ rule create_amplicon_bed:
     input:
         "bed/amplicon.bed"
 
-rule annovate_variants:
+rule annotate_variants:
     input:
         get_annotated_variants
 
@@ -635,7 +635,7 @@ rule run_table_annovar:
     input:
         "qc_annotation/{sample}.avinput"
     output:
-        "qc_annotation/{sample}.NC_045512v2_multianno.txt
+        "qc_annotation/{sample}.NC_045512v2_multianno.txt"
     params:
         script=table_annovar.pl,
         buildver="NC_045512v2",
