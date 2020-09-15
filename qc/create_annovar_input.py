@@ -29,10 +29,9 @@ class Variant(object):
             ref = '-'
             alt = re.sub('^[+]', '', self.var['ALT'])
         elif self.is_deletion():
-            start = self.var['POS']
-            end = self.var['POS']
             ref = re.sub('^[-]', '', self.var['ALT'])
             alt = '-'
+            end = int(self.var['POS']) + len(ref)
         else:
             start = str(int(self.var['POS']))
             end = str(int(self.var['POS']))
@@ -70,7 +69,7 @@ def convert_vcf_to_annovar(var, chr='NC_045512v2'):
     if var.is_indel:
         if var.is_deletion:
             start = var.POS + 1
-            end = var.POS + 1
+            end = var.POS + len(str(var.ALT[0]))
             ref = re.sub(str(var.ALT[0]), '', var.REF)
             alt = '-'
         else:
