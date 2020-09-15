@@ -21,7 +21,7 @@ dependencies:
   - minimap2
   - poppler
   - numpy=1.19.1
-  - biopython
+  - biopython=1.77
   - texlive-core
   - pip:
       - dendropy>=4.4.0
