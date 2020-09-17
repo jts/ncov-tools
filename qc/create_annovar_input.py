@@ -68,10 +68,10 @@ def convert_vcf_to_annovar(var, chr='NC_045512v2'):
     alt = ''
     if var.is_indel:
         if var.is_deletion:
-            start = var.POS + 1
-            end = var.POS + len(str(var.ALT[0]))
             ref = re.sub(str(var.ALT[0]), '', var.REF)
             alt = '-'
+            start = var.POS + 1
+            end = var.POS + len(str(ref))
         else:
             start = var.POS + 1
             end = var.POS + 1
