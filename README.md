@@ -184,6 +184,23 @@ qc_reports/run_name_ambiguous_report.tsv
 qc_reports/run_name_mixture_report.tsv
 ```
 
+## Variant Annotation
+SNVs and Indels are annotated using ANNOVAR.  A custom `avGene` file was
+developed by the ANNOVAR authors with details provided on their website:
+`https://doc-openbio.readthedocs.io/projects/annovar/en/latest/`
+
+ANNOVAR requires seperate installation and `table_annovar.pl` must be in the
+$PATH for proper execution.  The `Snakefile` supports the conversion of
+`.variants.tsv` and `.pass.vcf.gz` files for the Illumina and ONT platforms
+respectively.
+
+```
+snakemake -s qc/Snakefile --cores 2 annotate_variants
+```
+
+Variant annotation output can be found in `qc_annotation`.
+
+
 ## Credit and Acknowledgements
 
 The tree-with-SNPs plot was inspired by a plot shared by Mads Albertsen.
