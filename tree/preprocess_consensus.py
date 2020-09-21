@@ -12,7 +12,7 @@ if len(sys.argv) < 2:
     sys.exit(1)
 args = parser.parse_args()
 
-completeness_threshold = args.completeness
+completeness_threshold = float(args.completeness)
 
 for fn in args.files:
     fa = pysam.FastxFile(fn)
