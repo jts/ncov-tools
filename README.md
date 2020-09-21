@@ -88,7 +88,7 @@ offset: 0
 
 # minimum completeness threshold for inclusion to the SNP tree plot, if no entry
 # is provided the default is set to 0.75
-completeness_threshold: 0.99
+completeness_threshold: 0.9
 ```
 
 The pipeline is designed to work with the results of `ivar` (illumina) or the artic-ncov2019/fieldbioinformatics workflow (oxford nanopore). It will automatically detect the names of the output files (BAMs, consensus fasta, variants) from these workflows using the `platform` value. If you used a different workflow, you can set the following options to help the pipeline find your files:
