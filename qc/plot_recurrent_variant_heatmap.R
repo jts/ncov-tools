@@ -197,14 +197,16 @@ create_mutation_heatmap <- function(data=NULL, base_size=12) {
 }
 
 
-
+# Main
 parser <- ArgumentParser(description="Plot recurrent amino acid changes as a heatmap")
 parser$add_argument('--path', '-p', default="./",
                     help="path to the *_multianno.txt files from ANOVAR")
 parser$add_argument("--output", "-o", default="aa_mutation_heatmap.pdf",
-                    help="path and filename to write heatmap to")
+                    help="path and filename to write heatmap to (default: aa_mutation_heatmap.pdf")
 parser$add_argument("--threshold", "-t", default=2,
-                    help="threshold value for recurrent mutations to plot")
+                    help="threshold value for recurrent mutations to plot (default: 2)")
+parser$add_argument("--base_size", "-b", default=10,
+                    help="base font size for the plot (default: 10)")
 args <- parser$parse_args()
 
 aa_df <- create_aa_dataframe(path=args$path, threshold=args$threshold)
