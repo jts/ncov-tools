@@ -1,7 +1,5 @@
 library(ggplot2)
 library(dplyr)
-library(lattice)
-library(latticeExtra)
 library(RColorBrewer)
 library(argparse)
 
@@ -203,10 +201,13 @@ create_mutation_heatmap <- function(data=NULL, base_size=12) {
 parser <- ArgumentParser(description="Plot recurrent amino acid changes as a heatmap")
 parser$add_argument('--path', '-p', default="./",
                     help="path to the *_multianno.txt files from ANOVAR")
-parser$add_argument("--output", "o", default="aa_mutation_heatmap.pdf",
+parser$add_argument("--output", "-o", default="aa_mutation_heatmap.pdf",
                     help="path and filename to write heatmap to")
+parser$add_argument("--threshold", "-t", default=2,
+                    help="threshold value for recurrent mutations to plot")
+args <- parser$parse_args()
 
-aa_df <- create_aa_dataframe(path=args$path, threshold=2)
+aa_df <- create_aa_dataframe(path=args$path, threshold=args$threshold)
 num_samples <- length(unique(aa_df$sample))
 num_aa <- length(unique(aa_df$aa))
 pdf_height <- 0.075 * num_aa
@@ -214,4 +215,4 @@ pdf_width <- 0.075 * num_samples
 pdf_height <- max(11, pdf_height)
 pdf_width <- max(8.5, pdf_width)
 aa_heatmap <- create_mutation_heatmap(data=aa_df, base_size=10) + scale_fill_brewer(palette="Set1")
-ggsave(filename='~/Desktop/tester.pdf', plot=aa_heatmap, device='pdf', units="in", width=pdf_width, height=pdf_height)
+ggsave(filename=args$output, plot=aa_heatmap, device='pdf', units="in", width=pdf_width, height=pdf_height)
