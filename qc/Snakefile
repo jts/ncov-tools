@@ -113,6 +113,16 @@ def get_primer_trimmed_bam_for_sample(wildcards):
         sys.stderr.write("Error: unrecognized platform")
         sys.exit(1)
 
+def get_completeness_threshold(wildcards):
+    return config.get("completeness_threshold", 0.75)
+
+def get_completeness_threshold_opt(wildcards):
+    completeness = get_completeness_threshold(wildcards)
+    if completeness != "":
+        return "--completeness %s" % (completeness)
+    else:
+        return ""
+
 def get_tree_consensus_sequences(wildcards):
     pattern = get_consensus_pattern()
     consensus_sequences = [pattern.format(data_root=config["data_root"], sample=s) for s in get_sample_names()]
@@ -404,9 +414,10 @@ rule make_merged_consensus:
     output:
         "qc_analysis/{prefix}_consensus.fasta"
     params:
+        completeness_opt=get_completeness_threshold_opt,
         rename_script = srcdir("../tree/preprocess_consensus.py")
     shell:
-        "python {params.rename_script} {input} > {output}"
+        "python {params.rename_script} {params.completeness_opt} {input} > {output}"
 
 rule make_msa:
     input:

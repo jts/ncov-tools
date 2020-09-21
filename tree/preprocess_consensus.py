@@ -1,10 +1,20 @@
 import collections
 import pysam
 import sys
+import argparse
 
-completeness_threshold = 0.75
+parser = argparse.ArgumentParser(description='a consensus sequence pre-processing script')
+parser.add_argument('-c', '--completeness', default=0.75,
+                    help='the minimum completeness threshold (default: 0.75)')
+parser.add_argument('files', action='store', nargs='*')
+if len(sys.argv) < 2:
+    parser.print_help(sys.stderr)
+    sys.exit(1)
+args = parser.parse_args()
 
-for fn in sys.argv[1:]:
+completeness_threshold = float(args.completeness)
+
+for fn in args.files:
     fa = pysam.FastxFile(fn)
     for record in fa:
 
