@@ -239,6 +239,21 @@ def get_annotated_variants(wildcards):
 def get_sarscov2db_opt(wildcards):
     return config.get("sarscov2db", "")
 
+def get_threshold_opt(wildcards):
+    if "recurrent_threshold" in config:
+        return f"--threshold {config['recurrent_threshold']}"
+    else:
+        return ""
+
+def get_aa_heatmap_basesize_opt(wildcards):
+    if "basesize_recurrent_heatmap" in config:
+        return f"--base_size {config['basesize_recurrent_heatmap']}"
+    else:
+        return ""
+
+def get_aa_heatmap(wildcards):
+    prefix = get_run_name()
+    return f"plots/{prefix}_aa_mutation_heatmap.pdf"
 #
 # top-level rules
 #
@@ -284,7 +299,7 @@ rule create_amplicon_bed:
 
 rule annotate_variants:
     input:
-        get_annotated_variants
+        get_aa_heatmap
 
 #
 # generate coverage QC data using bedtools
@@ -664,4 +679,16 @@ rule make_annovar_input:
         script=srcdir("create_annovar_input.py")
     shell:
         "python {params.script} --file {input.samplevariant} --output {output}"
+
+rule make_aa_heatmap:
+    input:
+        get_annotated_variants
+    output:
+        "plots/{prefix}_aa_mutation_heatmap.pdf"
+    params:
+        script=srcdir("plot_recurrent_variant_heatmap.R"),
+        threshold_opt=get_threshold_opt,
+        base_size_opt=get_aa_heatmap_basesize_opt
+    shell:
+        "Rscript {params.script} --path qc_annotation/ --output {output} {params.threshold_opt} {params.base_size_opt}"
 
