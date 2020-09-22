@@ -50,8 +50,12 @@ get_variant_annotation_data <- function(files) {
 get_aa_change <- function(variant=NULL) {
   if (is.null(variant)) stop("Mandatory argument variant is missing")
 
-  if (variant == '') {
+  if (is.na(variant)) {
+      return(NA)
+  } else if (variant == '') {
     return(NA)
+  } else if (is.null(variant)) {
+      return(NA)
   }
 
   var_vector <- strsplit(variant, ',')
