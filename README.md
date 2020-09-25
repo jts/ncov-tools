@@ -196,7 +196,14 @@ developed by the ANNOVAR authors with details provided on their website:
 ANNOVAR requires seperate installation and `table_annovar.pl` must be in the
 $PATH for proper execution.  The `Snakefile` supports the conversion of
 `.variants.tsv` and `.pass.vcf.gz` files for the Illumina and ONT platforms
-respectively.
+respectively.  An entry in the `config.yaml` file is required to identify
+the location of the directory containing the files: NC_045512v2_avGeneMrna.fa
+and NC_045512v2_avGene.txt.
+
+```
+config.yaml
+sarscov2db: /full/path/to/the/directory/containing/avGene/files
+```
 
 ```
 snakemake -s qc/Snakefile --cores 2 annotate_variants
