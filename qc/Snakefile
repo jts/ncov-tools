@@ -224,6 +224,13 @@ def get_final_pdf_report(wildcards):
 #
 # top-level rules
 #
+rule all:
+    input:
+        get_qc_sequencing_plots,
+        get_qc_analysis_plots,
+        get_qc_reports,
+        get_final_pdf_report
+
 rule all_qc_sequencing:
     input:
         get_qc_sequencing_plots
