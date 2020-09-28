@@ -100,7 +100,12 @@ def get_bam_for_sample(wildcards):
     return bam_pattern.format(data_root=config["data_root"], sample=wildcards.sample)
 
 def get_primer_trimmed_bam_for_sample(wildcards):
-    pt_bam_pattern = get_bam_pattern()
+
+    # If the pattern has been provided in the config, use it
+    if "primer_trimmed_bam_pattern" in config:
+        return config["primer_trimmed_bam_pattern"].format(data_root=config["data_root"], sample=wildcards.sample)
+
+    # Otherwise, rely on what we expect the platform to produce
     if "platform" not in config:
         sys.stderr.write("Error: platform not defined in config")
         sys.exit(1)
