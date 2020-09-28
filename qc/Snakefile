@@ -113,6 +113,16 @@ def get_primer_trimmed_bam_for_sample(wildcards):
         sys.stderr.write("Error: unrecognized platform")
         sys.exit(1)
 
+def get_completeness_threshold(wildcards):
+    return config.get("completeness_threshold", 0.75)
+
+def get_completeness_threshold_opt(wildcards):
+    completeness = get_completeness_threshold(wildcards)
+    if completeness != "":
+        return "--completeness %s" % (completeness)
+    else:
+        return ""
+
 def get_tree_consensus_sequences(wildcards):
     pattern = get_consensus_pattern()
     consensus_sequences = [pattern.format(data_root=config["data_root"], sample=s) for s in get_sample_names()]
@@ -221,6 +231,14 @@ def get_final_pdf_report(wildcards):
     rn = get_run_name()
     return "qc_reports/%s.pdf" % (rn)
 
+def get_annotated_variants(wildcards):
+    pattern = "qc_annotation/{sample}.NC_045512v2_multianno.txt"
+    out = [pattern.format(sample=s) for s in get_sample_names()]
+    return out
+
+def get_sarscov2db_opt(wildcards):
+    return config.get("sarscov2db", "")
+
 #
 # top-level rules
 #
@@ -270,6 +288,10 @@ rule all_final_report:
 rule create_amplicon_bed:
     input:
         "bed/amplicon.bed"
+
+rule annotate_variants:
+    input:
+        get_annotated_variants
 
 #
 # generate coverage QC data using bedtools
@@ -399,9 +421,10 @@ rule make_merged_consensus:
     output:
         "qc_analysis/{prefix}_consensus.fasta"
     params:
+        completeness_opt=get_completeness_threshold_opt,
         rename_script = srcdir("../tree/preprocess_consensus.py")
     shell:
-        "python {params.rename_script} {input} > {output}"
+        "python {params.rename_script} {params.completeness_opt} {input} > {output}"
 
 rule make_msa:
     input:
@@ -452,13 +475,14 @@ rule make_lineage_assignments:
 #
 rule make_qc_plot_amplicon_coverage_heatmap:
     input:
-        expand("qc_sequencing/{s}.amplicon_coverage.bed", s=get_sample_names())
+        expand("qc_sequencing/{s}.amplicon_depth.bed", s=get_sample_names())
     output:
-        "plots/{prefix}_amplicon_coverage_heatmap.pdf"
+        plot="plots/{prefix}_amplicon_coverage_heatmap.pdf",
+        table="qc_analysis/{prefix}_amplicon_coverage_table.tsv"
     params:
         plot_script = srcdir("plot_amplicon_coverage_heatmap.R")
     shell:
-        "Rscript {params.plot_script} --path qc_sequencing --output {output}"
+        "Rscript {params.plot_script} --path qc_sequencing --output {output.plot} --table {output.table}"
 
 rule make_qc_plot_depth_by_position:
     input:
@@ -624,3 +648,27 @@ rule make_report_pdf:
         "pdflatex -output-directory qc_reports {input} &&"
         "pdflatex -output-directory qc_reports {input} &&"
         "pdflatex -output-directory qc_reports {input}"
+
+rule run_table_annovar:
+    input:
+        "qc_annotation/{sample}.avinput"
+    output:
+        "qc_annotation/{sample}.NC_045512v2_multianno.txt"
+    params:
+        script="table_annovar.pl",
+        buildver="NC_045512v2",
+        sarscov2db=get_sarscov2db_opt,
+        outfile="qc_annotation/{sample}"
+    shell:
+        "{params.script} --buildver {params.buildver} {input} {params.sarscov2db} -protocol avGene -operation g --remove --otherinfo --outfile {params.outfile}"
+
+rule make_annovar_input:
+    input:
+        samplevariant=get_variants
+    output:
+        "qc_annotation/{sample}.avinput"
+    params:
+        script=srcdir("create_annovar_input.py")
+    shell:
+        "python {params.script} --file {input.samplevariant} --output {output}"
+

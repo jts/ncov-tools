@@ -85,6 +85,10 @@ bed_type: unique_amplicons
 
 # offset for the amplicons and primers
 offset: 0
+
+# minimum completeness threshold for inclusion to the SNP tree plot, if no entry
+# is provided the default is set to 0.75
+completeness_threshold: 0.9
 ```
 
 The pipeline is designed to work with the results of `ivar` (illumina) or the artic-ncov2019/fieldbioinformatics workflow (oxford nanopore). It will automatically detect the names of the output files (BAMs, consensus fasta, variants) from these workflows using the `platform` value. If you used a different workflow, you can set the following options to help the pipeline find your files:
@@ -183,6 +187,23 @@ qc_reports/run_name_ambiguous_report.tsv
 # A report on samples that have evidence for a mixture of alleles at multiple positions (this code is experimental and still being tested)
 qc_reports/run_name_mixture_report.tsv
 ```
+
+## Variant Annotation
+SNVs and Indels are annotated using ANNOVAR.  A custom `avGene` file was
+developed by the ANNOVAR authors with details provided on their website:
+`https://doc-openbio.readthedocs.io/projects/annovar/en/latest/`
+
+ANNOVAR requires seperate installation and `table_annovar.pl` must be in the
+$PATH for proper execution.  The `Snakefile` supports the conversion of
+`.variants.tsv` and `.pass.vcf.gz` files for the Illumina and ONT platforms
+respectively.
+
+```
+snakemake -s qc/Snakefile --cores 2 annotate_variants
+```
+
+Variant annotation output can be found in `qc_annotation`.
+
 
 ## Credit and Acknowledgements
 
