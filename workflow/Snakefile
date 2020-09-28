@@ -1,0 +1,14 @@
+import glob
+import os
+
+include: "rules/common.smk"
+include: "rules/sequencing.smk"
+include: "rules/analysis.smk"
+include: "rules/report.smk"
+
+rule all:
+    input:
+        get_qc_sequencing_plots,
+        get_qc_analysis_plots,
+        get_qc_reports,
+        get_final_pdf_report
