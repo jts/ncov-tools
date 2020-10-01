@@ -127,7 +127,11 @@ rule make_qc_plot_amplicon_coverage_heatmap:
         "Rscript {params.plot_script} --path qc_sequencing --output {output.plot} --table {output.table}"
 
 def get_metadata_opt(wildcards):
-    return "-m %s" % get_metadata_file(wildcards)
+    metadata_file = get_metadata_file(wildcards)
+    if metadata_file != "":
+        return "-m %s" % get_metadata_file(wildcards)
+    else:
+        return ""
 
 # plot coverage along the genome for each sample
 rule make_qc_plot_depth_by_position:
