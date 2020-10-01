@@ -126,6 +126,9 @@ rule make_qc_plot_amplicon_coverage_heatmap:
     shell:
         "Rscript {params.plot_script} --path qc_sequencing --output {output.plot} --table {output.table}"
 
+def get_metadata_opt(wildcards):
+    return "-m %s" % get_metadata_file(wildcards)
+
 # plot coverage along the genome for each sample
 rule make_qc_plot_depth_by_position:
     input:
@@ -134,9 +137,9 @@ rule make_qc_plot_depth_by_position:
         "plots/{prefix}_depth_by_position.pdf"
     params:
         plot_script = srcdir("../scripts/plot/plot_qc_sequencing.R"),
-        metadata=get_metadata_file
+        metadata_opt=get_metadata_opt
     shell:
-        "Rscript {params.plot_script} depth_by_position {wildcards.prefix} {params.metadata}"
+        "Rscript {params.plot_script} -t depth_by_position -o {output} {params.metadata_opt}"
 
 # plot coverage, except only for the negative controls
 rule make_qc_plot_depth_by_position_negative_controls:
@@ -146,9 +149,9 @@ rule make_qc_plot_depth_by_position_negative_controls:
         "plots/{prefix}_depth_by_position_negative_control.pdf"
     params:
         plot_script = srcdir("../scripts/plot/plot_qc_sequencing.R"),
-        metadata=get_metadata_file
+        metadata_opt=get_metadata_opt
     shell:
-        "Rscript {params.plot_script} negative_control_depth_by_position {wildcards.prefix} {params.metadata}"
+        "Rscript {params.plot_script} -t negative_control_depth_by_position -o {output} {params.metadata_opt}"
 
 # 
 rule make_qc_plot_amplicon_depth_by_ct:
@@ -160,7 +163,7 @@ rule make_qc_plot_amplicon_depth_by_ct:
     params:
         plot_script = srcdir("../scripts/plot/plot_qc_sequencing.R")
     shell:
-        "Rscript {params.plot_script} amplicon_depth_by_ct {wildcards.prefix} {input.metadata}"
+        "Rscript {params.plot_script} -t amplicon_depth_by_ct -o {output} -m {input.metadata}"
 
 #
 rule make_qc_plot_fraction_covered_by_amplicon:
@@ -171,7 +174,7 @@ rule make_qc_plot_fraction_covered_by_amplicon:
     params:
         plot_script = srcdir("../scripts/plot/plot_qc_sequencing.R")
     shell:
-        "Rscript {params.plot_script} amplicon_covered_fraction {wildcards.prefix}"
+        "Rscript {params.plot_script} -t amplicon_covered_fraction -o {output}"
 
 #
 rule make_qc_genome_completeness_by_ct:
@@ -183,4 +186,4 @@ rule make_qc_genome_completeness_by_ct:
     params:
         plot_script = srcdir("../scripts/plot/plot_qc_sequencing.R")
     shell:
-        "Rscript {params.plot_script} genome_completeness_by_ct {wildcards.prefix} {input.metadata}"
+        "Rscript {params.plot_script} -t genome_completeness_by_ct -o {output} -m {input.metadata}"

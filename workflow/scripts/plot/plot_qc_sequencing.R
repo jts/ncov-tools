@@ -95,23 +95,33 @@ read_qc_csv <- function(fn) {
 library(ggplot2)
 library(dplyr)
 library(ggforce)
+library(argparse)
 
 if(!interactive()) {
 
-    args = commandArgs(trailingOnly=TRUE)
-    if(length(args) == 0) {
+# Main
+    parser <- ArgumentParser(description="Generate various QC plots")
+
+    parser$add_argument('--directory', '-d', default="qc_sequencing",
+                        help="directory containing the input files")
+    parser$add_argument('--plot-type', '-t', default="depth_by_position",
+                        help="the type of plot to generate")
+    parser$add_argument("--output", "-o", default="",
+                        help="name of the output plot")
+    parser$add_argument("--metadata", "-m", default="",
+                        help="optional metadata file to annotate the plot with")
+    args <- parser$parse_args()
+    
+    if(args$output == "") {
         q()
     }
-
-    command = args[1]
-    prefix = args[2]
 
     # metadata is optional so we make a default table here
     metadata = data.frame(sample=character(),
                           ct=double())
 
-    if(length(args) == 3) {
-        metadata.raw <- read.table(args[3], header=T, sep="\t")
+    if(args$metadata != "") {
+        metadata.raw <- read.table(args$metadata, header=T, sep="\t")
 
         # clean metadata of unknown Cts
         metadata = subset(metadata.raw, ct != "unknown")
@@ -120,35 +130,29 @@ if(!interactive()) {
         metadata$ct = as.numeric(as.character(metadata$ct))
     }
 
-    if(command == "depth_by_position") {
+    if(args$plot_type == "depth_by_position") {
 
         df <- read_glob("qc_sequencing", "*.per_base_coverage.bed")
-        outname = sprintf("plots/%s_depth_by_position.pdf", prefix)
-        plot_depth_per_base(df, metadata, outname)
+        plot_depth_per_base(df, metadata, args$output)
 
-    } else if(command == "negative_control_depth_by_position") {
+    } else if(args$plot_type == "negative_control_depth_by_position") {
 
         df <- read_glob("qc_sequencing_negative_control", "*.per_base_coverage.bed")
-        outname = sprintf("plots/%s_depth_by_position_negative_control.pdf", prefix)
-        plot_depth_per_base(df, metadata, outname)
+        plot_depth_per_base(df, metadata, args$output)
 
-    } else if(command == "amplicon_depth_by_ct") {
+    } else if(args$plot_type == "amplicon_depth_by_ct") {
 
         df <- read_glob("qc_sequencing", "*.amplicon_depth.bed")
-        outname = sprintf("plots/%s_amplicon_depth_by_ct.pdf", prefix)
-        plot_depth_by_amplicon_and_ct(df, metadata, outname)
+        plot_depth_by_amplicon_and_ct(df, metadata, args$output)
 
-    } else if(command == "amplicon_covered_fraction") {
+    } else if(args$plot_type == "amplicon_covered_fraction") {
 
         df <- read_glob("qc_sequencing", "*.amplicon_coverage.bed")
-        outname = sprintf("plots/%s_amplicon_covered_fraction.pdf", prefix)
-        plot_fraction_covered_by_amplicon(df, outname)
+        plot_fraction_covered_by_amplicon(df, args$output)
 
-    } else if(command == "genome_completeness_by_ct") {
-        
+    } else if(args$plot_type == "genome_completeness_by_ct") {
+
         df <- read_qc_csv("qc_analysis/merged.qc.csv")
-        outname = sprintf("plots/%s_genome_completeness_by_ct.pdf", prefix)
-        plot_genome_completeness_by_ct(df, metadata, outname)
-
+        plot_genome_completeness_by_ct(df, metadata, args$output)
     }
 }
