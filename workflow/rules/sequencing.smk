@@ -1,24 +1,13 @@
+#
+# Rules for producing sequencing-level QC (coverage plots, genome completeness, etc)
+#
+
+# Top level rule for generating all plots
 rule all_qc_sequencing:
     input:
         get_qc_sequencing_plots
 
-#
-# generate coverage QC data using bedtools
-#
-rule make_amplicon_mean_coverage:
-    input:
-        bam=get_bam_for_sample,
-        #bed=get_amplicon_bed
-        bed="bed/amplicon.bed"
-    output:
-        "qc_sequencing/{sample}.mean_coverage.bed"
-    params:
-        memory_per_thread="2G"
-    threads: 1
-    shell:
-        "echo -e \"reference_name\tstart\tend\tamplicon_id\tpool\tstrand\tmean_coverage\" > {output};"
-        "bedtools coverage -mean -a {input.bed} -b {input.bam} >> {output}"
-
+# generate a bed file containing the coverage across each amplicon for a sample
 rule make_amplicon_coverage:
     input:
         bam=get_bam_for_sample,
@@ -33,6 +22,7 @@ rule make_amplicon_coverage:
         "echo -e \"reference_name\tstart\tend\tamplicon_id\tpool\tstrand\tread_count\tcovered_bases\tamplicon_length\tfraction_covered\" > {output};"
         "bedtools coverage -a {input.bed} -b {input.bam} >> {output}"
 
+# generate a bed file containing the mean depth across each amplicon for a sample
 rule make_amplicon_depth:
     input:
         bam=get_bam_for_sample,
@@ -47,6 +37,7 @@ rule make_amplicon_depth:
         "echo -e \"reference_name\tstart\tend\tamplicon_id\tpool\tstrand\tmean_depth\" > {output};"
         "bedtools coverage -mean -a {input.bed} -b {input.bam} >> {output}"
 
+# generate a bed file containing per-base coverage across each amplicon for a sample
 rule make_amplicon_base_coverage:
     input:
         bam=get_bam_for_sample,
@@ -61,15 +52,7 @@ rule make_amplicon_base_coverage:
         "echo -e \"reference_name\tstart\tend\tamplicon_id\tpool\tstrand\tposition\tdepth\" > {output};"
         "bedtools coverage -d -a {input.bed} -b {input.bam} >> {output}"
 
-# https://bioinformatics.stackexchange.com/questions/91/how-to-convert-fasta-to-bed
-rule make_genome_bed:
-    input:
-        get_reference_genome_fai
-    output:
-        "bed/genome.bed"
-    shell:
-        "cat {input} | awk '{{ print $1 \"\t0\t\" $2 }}' > {output}"
-
+# generate a bed file containing per-base coverage across the entire genome
 rule make_genome_per_base_coverage:
     input:
         bam=get_bam_for_sample,
@@ -83,8 +66,11 @@ rule make_genome_per_base_coverage:
         "echo -e \"reference_name\tstart\tend\tposition\tdepth\" > {output};"
         "bedtools coverage -d -a {input.bed} -b {input.bam} >> {output}"
 
-# pysam's index_filename option is broken so we have
-# to do some hacky symlinking to work around it
+# format_pileup.py requires an indexed bam file, but the connor
+# pipeline doesn't create it by default. We can't assume
+# write access in the data_root directory so we work around
+# it by creating a directory of symlinks in the working directory
+# that we can write to
 rule make_tmp_bam:
     input:
         get_primer_trimmed_bam_for_sample
@@ -93,6 +79,7 @@ rule make_tmp_bam:
     shell:
         "ln -s \"$(readlink -f {input})\" {output}"
 
+# build a bam index
 rule make_bam_index:
     input:
         "{prefix}.bam"
@@ -101,6 +88,7 @@ rule make_bam_index:
     shell:
         "samtools index {input}"
 
+# summarize samtools mpileup output in an easy to parse format
 rule make_formatted_pileup:
     input:
         bam="tmp_bam/{sample}.bam",
@@ -113,16 +101,7 @@ rule make_formatted_pileup:
     shell:
         "python {params.pileup_script} --bam {input.bam} --reference {input.reference} > {output}"
 
-rule make_negative_control_report:
-    input:
-        bed=get_negative_control_bed
-    output:
-        "qc_reports/{prefix}_negative_control_report.tsv"
-    params:
-        script=srcdir("../scripts/negative_control_check.py")
-    shell:
-        "python {params.script} {input.bed} > {output}"
-
+# make a file-of-filenames with the fpileup files for each sample
 rule make_fpileups_fofn:
     input:
         expand("qc_sequencing/{s}.fpileup.tsv", s=get_sample_names())
@@ -134,6 +113,8 @@ rule make_fpileups_fofn:
 #
 # Plots
 #
+
+# heatmap of amplicon coverage (column) for each sample (row)
 rule make_qc_plot_amplicon_coverage_heatmap:
     input:
         expand("qc_sequencing/{s}.amplicon_depth.bed", s=get_sample_names())
@@ -145,6 +126,7 @@ rule make_qc_plot_amplicon_coverage_heatmap:
     shell:
         "Rscript {params.plot_script} --path qc_sequencing --output {output.plot} --table {output.table}"
 
+# plot coverage along the genome for each sample
 rule make_qc_plot_depth_by_position:
     input:
         expand("qc_sequencing/{s}.per_base_coverage.bed", s=get_sample_names())
@@ -156,6 +138,7 @@ rule make_qc_plot_depth_by_position:
     shell:
         "Rscript {params.plot_script} depth_by_position {wildcards.prefix} {params.metadata}"
 
+# plot coverage, except only for the negative controls
 rule make_qc_plot_depth_by_position_negative_controls:
     input:
         expand("qc_sequencing_negative_control/{s}.per_base_coverage.bed", s=get_negative_control_samples())
@@ -167,6 +150,7 @@ rule make_qc_plot_depth_by_position_negative_controls:
     shell:
         "Rscript {params.plot_script} negative_control_depth_by_position {wildcards.prefix} {params.metadata}"
 
+# 
 rule make_qc_plot_amplicon_depth_by_ct:
     input:
         files=expand("qc_sequencing/{s}.amplicon_depth.bed", s=get_sample_names()),
@@ -178,6 +162,7 @@ rule make_qc_plot_amplicon_depth_by_ct:
     shell:
         "Rscript {params.plot_script} amplicon_depth_by_ct {wildcards.prefix} {input.metadata}"
 
+#
 rule make_qc_plot_fraction_covered_by_amplicon:
     input:
         expand("qc_sequencing/{s}.amplicon_coverage.bed", s=get_sample_names())
@@ -188,6 +173,7 @@ rule make_qc_plot_fraction_covered_by_amplicon:
     shell:
         "Rscript {params.plot_script} amplicon_covered_fraction {wildcards.prefix}"
 
+#
 rule make_qc_genome_completeness_by_ct:
     input:
         qc="qc_analysis/merged.qc.csv",

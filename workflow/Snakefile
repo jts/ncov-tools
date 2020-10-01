@@ -4,6 +4,7 @@ import os
 include: "rules/common.smk"
 include: "rules/sequencing.smk"
 include: "rules/analysis.smk"
+include: "rules/annotation.smk"
 include: "rules/report.smk"
 
 rule all:

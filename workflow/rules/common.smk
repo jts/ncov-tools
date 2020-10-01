@@ -1,28 +1,9 @@
+#
+# Helper functions and rules
+#
+include: "defaults.smk"
+
 configfile: "config.yaml"
-
-# detect samples based on sorted.bam, which is common between the ONT and Illumina pipeline
-bam_suffix = ".sorted.bam"
-
-def get_bam_pattern():
-    return config.get("bam_pattern", "{data_root}/{sample}.sorted.bam")
-
-def get_consensus_pattern():
-    if config['platform'] == 'illumina':
-        return config.get("consensus_pattern", "{data_root}/{sample}.primertrimmed.consensus.fa")
-    elif config['platform'] == 'oxford-nanopore':
-        return config.get("consensus_pattern", "{data_root}/{sample}.consensus.fasta")
-
-def get_variants_pattern():
-    if config['platform'] == 'illumina':
-        return config.get("variants_pattern", "{data_root}/{sample}.variants.tsv")
-    elif config['platform'] == 'oxford-nanopore':
-        return config.get("variants_pattern", "{data_root}/{sample}.pass.vcf.gz")
-
-def get_metadata_file(wildcards):
-    return config.get("metadata", "").format(data_root=config["data_root"])
-
-def get_run_name(wildcards=None):
-    return config.get("run_name", "default")
 
 def get_sample_names():
 
@@ -47,24 +28,6 @@ def get_sample_names():
 
     # remove any possible duplicates
     return list(set(samples))
-
-def get_primer_bed(wildcards):
-    '''
-    Get the path to the BED file containing amplicon primers.
-    '''
-    return config.get("primer_bed", "")
-
-def get_primer_offset(wildcards):
-    '''
-    Get the number of bases to offset the primer when removing primers from amplicon BED
-    '''
-    return config.get("primer_offset", "0")
-
-def get_primer_bed_type_opt(wildcards):
-    '''
-    Get option bed_type from config.yaml
-    '''
-    return config.get("bed_type", "unique_amplicons")
 
 def get_negative_control_samples():
     if "negative_control_samples" in config:
@@ -115,9 +78,6 @@ def get_primer_trimmed_bam_for_sample(wildcards):
         sys.stderr.write("Error: unrecognized platform")
         sys.exit(1)
 
-def get_completeness_threshold(wildcards):
-    return config.get("completeness_threshold", 0.75)
-
 def get_completeness_threshold_opt(wildcards):
     completeness = get_completeness_threshold(wildcards)
     if completeness != "":
@@ -155,14 +115,6 @@ def get_qc_analysis_plots(wildcards):
     prefix = get_run_name()
     out = [ "plots/%s_tree_snps.pdf" % (prefix),
             "plots/%s_amplicon_coverage_heatmap.pdf" % (prefix) ]
-    return out
-
-def get_all_qc_analysis_plots(wildcards):
-    prefix = get_run_name()
-    out = [ "plots/%s_tree_snps.pdf" % (prefix),
-            "plots/%s_amplicon_coverage_heatmap.pdf" % (prefix) ]
-    if get_metadata_file(wildcards) != "":
-        out.append("plots/%s_genome_completeness_by_ct.pdf" % (prefix))
     return out
 
 def get_qc_summary(wildcards):
@@ -238,9 +190,7 @@ def get_annotated_variants(wildcards):
     out = [pattern.format(sample=s) for s in get_sample_names()]
     return out
 
-def get_sarscov2db_opt(wildcards):
-    return config.get("sarscov2db", "")
-
+# generate the amplicon-level bed file from the input primer bed
 rule make_amplicon_bed:
     input:
         primers=get_primer_bed
@@ -253,6 +203,12 @@ rule make_amplicon_bed:
     shell:
         "{params.script} --primers {input.primers} --offset {params.offset} --bed_type {params.bed_type_opt} --output {output}"
 
-rule create_amplicon_bed:
+# make a bed file for the entire reference genome as a single record
+# from: https://bioinformatics.stackexchange.com/questions/91/how-to-convert-fasta-to-bed
+rule make_genome_bed:
     input:
-        "bed/amplicon.bed"
+        get_reference_genome_fai
+    output:
+        "bed/genome.bed"
+    shell:
+        "cat {input} | awk '{{ print $1 \"\t0\t\" $2 }}' > {output}"
