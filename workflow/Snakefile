@@ -11,5 +11,4 @@ rule all:
     input:
         get_qc_sequencing_plots,
         get_qc_analysis_plots,
-        get_qc_reports,
-        get_final_pdf_report
+        get_qc_reports
