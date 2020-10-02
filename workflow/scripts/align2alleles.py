@@ -77,9 +77,9 @@ if args.mode == "variant_list":
     variant_positions = list()
     for i in range(0, alen):
         supported_bases = list()
-        for b in ("A", "C", "G", "T"):
+        for b in counters[i]:
             c = counters[i][b]
-            if c >= args.min_allele_count:
+            if b != "N" and c >= args.min_allele_count:
                 supported_bases.append(b)
 
         if len(supported_bases) > 1:
