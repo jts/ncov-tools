@@ -198,7 +198,9 @@ def load_msa_alleles(alleles_fn):
                 out[sample] = dict()
             ra = row['ref_allele']
             ca = row['alt_allele'] # consensus allele, can be ambiguous
-            if ca == "N":
+            
+            # ignore Ns and singletons
+            if ca == "N" or int(row['samples_with_allele']) == 1:
                 continue
             aa = resolve_iupac(ca, ra)
 

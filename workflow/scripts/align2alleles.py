@@ -20,14 +20,14 @@ def write_result_matrix(variant_positions, sequences):
         print("\t".join(out))
 
 # write results as a TSV file with one row per variant found in a sample
-def write_variant_list(variant_positions, sequences, reference_sample):
-    print("\t".join(["name", "pos", "ref_allele", "alt_allele"]))
+def write_variant_list(variant_positions, counters, sequences, reference_sample):
+    print("\t".join(["name", "pos", "ref_allele", "alt_allele", "samples_with_allele"]))
 
     for s in sequences:
         for i in variant_positions:
             b = s.sequence[i]
             if b != reference_sample.sequence[i]:
-                print("\t".join([s.name, str(i+1), reference_sample.sequence[i], b]))
+                print("\t".join([s.name, str(i+1), reference_sample.sequence[i], b, str(counters[i][b])]))
 
 #
 #
@@ -84,7 +84,7 @@ if args.mode == "variant_list":
 
         if len(supported_bases) > 1:
             variant_positions.append(i)
-    write_variant_list(variant_positions, sequences, reference_sample)
+    write_variant_list(variant_positions, counters, sequences, reference_sample)
 
 elif args.mode == "variant_frequency":
     for i in range(0, alen):
