@@ -154,14 +154,21 @@ After configuration, you can run the pipeline using Snakemake
 
 ```
 # Build the sequencing QC plots (coverage, allele frequencies)
-snakemake -s qc/Snakefile all_qc_sequencing
+snakemake -s workflow/Snakefile all_qc_sequencing
 
 # Build the analysis QC plots (tree with annotated mutations)
-snakemake -s qc/Snakefile all_qc_analysis
+snakemake -s workflow/Snakefile all_qc_analysis
 
 # Build the quality report tsv files (in qc_reports directory) 
-snakemake -s qc/Snakefile all_qc_reports
+snakemake -s workflow/Snakefile all_qc_reports
 ```
+
+There is also an  `all` rule that executes the three rules noted above in one `snakemake` command:
+```
+# Build all the reports and plots
+snakemake -s workflow/Snakefile all
+``
+
 
 ## Output
 
