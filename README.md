@@ -167,7 +167,7 @@ There is also an  `all` rule that executes the three rules noted above in one `s
 ```
 # Build all the reports and plots
 snakemake -s workflow/Snakefile all
-``
+```
 
 
 ## Output
