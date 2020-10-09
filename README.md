@@ -12,7 +12,7 @@ cd ncov-tools
 
 To use this package, install the dependencies using conda:
 ```
-conda env create -f environment.yml
+conda env create -f workflow/envs/environment.yml
 ```
 
 Alternatively, if install times are very slow using conda, we recommend using
@@ -26,7 +26,7 @@ conda install -c conda-forge mamba
 Then create the ncov-tools environment using mamba
 
 ```
-mamba env create -f environment.yml
+mamba env create -f workflow/envs/environment.yml
 ```
 
 Either way, if you used conda directly or mamba, activate the conda package and install the `parser` package:
