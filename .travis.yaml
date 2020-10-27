@@ -1,0 +1,21 @@
+services: docker
+
+include:
+    - stage: build master
+      if: branch = master
+      script:
+        - docker build  --tag c3genomics/ncov-tools:$TRAVIS_TAG .
+      after_success:
+        - docker push c3genomics/ncov-tools:latest
+    - stage: build release
+      if: tag IS present
+      script:
+        - docker build   --tag c3genomics/ncov-tools:$TRAVIS_TAG .
+      after_success:
+        - test $TRAVIS_TAG  && docker push c3genomics/ncov-tools:$TRAVIS_TAG
+    - stage: build beta
+      if branch != master
+      script:
+        - docker build  --tag c3genomics/ncov-tools:$TRAVIS_TAG .
+      after_success:
+        - docker push c3genomics/ncov-tools:alpha
