@@ -124,14 +124,17 @@ create_aa_table_count <- function(data=NULL) {
 
 get_func_consequence_levels <- function() {
   return(c(
+    'frameshift insertion',
+    'frameshift deletion',
+    'frameshift block substitution',
+    'stopgain',
+    'stoploss',
+    'nonframeshift insertion',
+    'nonframeshift deletion',
+    'nonframeshift block substitution',
     'nonsynonymous SNV',
     'synonymous SNV',
-    'frameshift deletion',
-    'nonframeshift deletion',
-    'frameshift insertion',
-    'nonframeshift insertion',
-    'stopgain',
-    'stoploss'))
+    'unknown'))
 }
 
 
