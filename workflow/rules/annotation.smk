@@ -1,31 +1,88 @@
 #
+# Helper functions
+#
+def get_aa_table(wildcards):
+    pattern = "qc_annotation/{sample}_aa_table.tsv"
+    out = [pattern.format(sample=s) for s in get_sample_names()]
+    return out
+
+def get_vcf_file(wildcards):
+    if config['platform'] == 'illumina':
+        pattern = "qc_annotation/{sample}.pass.vcf.gz"
+    elif config['platform'] == 'oxford-nanopore':
+        pattern = "data/{sample}.pass.vcf.gz"
+    return pattern
+
+def get_snpeff_vcf_files(wildcards):
+    pattern = "qc_annotation/{sample}.ann.vcf"
+    out = [pattern.format(sample=s) for s in get_sample_names()]
+    return out
+
+def get_threshold_opt(wildcards):
+    threshold = config.get("rec_threshold", "2")
+    return threshold
+
+def get_recurrent_heatmap_plot(wildcards):
+    prefix = get_run_name()
+    out = "plots/%s_aa_mutation_heatmap.pdf" % (prefix)
+    return out
+
+#
 # Rules for annotating variants with functional consequence
 #
-rule annotate_variants:
+rule annotate_snpeff:
     input:
-        get_annotated_variants
+        get_recurrent_heatmap_plot
 
-# run convert a variants file into annovar's input format
-rule make_annovar_input:
+rule convert_ivar_to_vcf:
     input:
-        samplevariant=get_variants
+        "data/{sample}.variants.tsv"
     output:
-        "qc_annotation/{sample}.avinput"
+        "qc_annotation/{sample}.pass.vcf"
     params:
-        script=srcdir("../scripts/create_annovar_input.py")
+        script=srcdir("../scripts/ivar_variants_to_vcf.py")
     shell:
-        "python {params.script} --file {input.samplevariant} --output {output}"
+        "{params.script} {input} {output}"
 
-# run annovar to predict the functional consequence of each mutation
-rule run_table_annovar:
+rule compress_vcf:
     input:
-        "qc_annotation/{sample}.avinput"
+        "qc_annotation/{sample}.pass.vcf"
     output:
-        "qc_annotation/{sample}.NC_045512v2_multianno.txt"
-    params:
-        script="table_annovar.pl",
-        buildver="NC_045512v2",
-        sarscov2db=get_sarscov2db_opt,
-        outfile="qc_annotation/{sample}"
+        "qc_annotation/{sample}.pass.vcf.gz"
     shell:
-        "{params.script} --buildver {params.buildver} {input} {params.sarscov2db} -protocol avGene -operation g --remove --otherinfo --outfile {params.outfile}"
+        "gzip {input}" 
+
+rule run_snpeff:
+    input:
+        get_vcf_file
+    output:
+        "qc_annotation/{sample}.ann.vcf"
+    params:
+        jar=os.environ["SNPEFFJAR"],
+        db="MN908947.3"
+    shell:
+        "java -Xmx8g -jar {params.jar} {params.db} {input} > {output}"
+
+
+rule convert_annotated_vcf_to_aa_table:
+    input:
+        vcf="qc_annotation/{sample}.ann.vcf"
+    output:
+        "qc_annotation/{sample}_aa_table.tsv"
+    params:
+        script=srcdir("../scripts/convert_recurrent_snpeff_data.py"),
+        sample="{sample}"
+    shell:
+        "python {params.script} --file {input.vcf} --sample {params.sample} --output {output}"
+
+rule create_recurrent_mutation_heatmap:
+    input:
+        get_aa_table
+    output:
+        "plots/{prefix}_aa_mutation_heatmap.pdf"
+    params:
+        script=srcdir("../scripts/plot/plot_recurrent_variant_heatmap_snpeff.R"),
+        threshold=get_threshold_opt
+    shell:
+        "Rscript {params.script} --path qc_annotation --output {output} --threshold {params.threshold}"
+
