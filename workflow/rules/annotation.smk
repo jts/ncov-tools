@@ -27,6 +27,12 @@ def get_recurrent_heatmap_plot(wildcards):
     out = "plots/%s_aa_mutation_heatmap.pdf" % (prefix)
     return out
 
+def get_java_heap_opt():
+    '''
+    Allocation heap space to the JVM for use with SNPEff
+    '''
+    return config.get('snpeff_java_heap', '8g')
+
 #
 # Rules for annotating variants with functional consequence
 #
@@ -59,9 +65,10 @@ rule run_snpeff:
         "qc_annotation/{sample}.ann.vcf"
     params:
         jar=os.environ["SNPEFFJAR"],
-        db="MN908947.3"
+        db="MN908947.3",
+        java_heap=get_java_heap_opt
     shell:
-        "java -Xmx8g -jar {params.jar} {params.db} {input} > {output}"
+        "java -Xmx{params.java_heap} -jar {params.jar} {params.db} {input} > {output}"
 
 
 rule convert_annotated_vcf_to_aa_table:
