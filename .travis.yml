@@ -1,21 +1,27 @@
 services: docker
-
-include:
-    - stage: build master
-      if: branch = master
+language: python
+jobs:
+  include:
+    - stage: build 
       script:
-        - docker build  --tag c3genomics/ncov-tools:$TRAVIS_TAG .
-      after_success:
-        - docker push c3genomics/ncov-tools:latest
-    - stage: build release
-      if: tag IS present
+        - docker build  --tag c3genomics/ncov-tools .
+    - stage: login
       script:
-        - docker build   --tag c3genomics/ncov-tools:$TRAVIS_TAG .
-      after_success:
-        - test $TRAVIS_TAG  && docker push c3genomics/ncov-tools:$TRAVIS_TAG
-    - stage: build beta
-      if branch != master:
-      script:
-        - docker build  --tag c3genomics/ncov-tools:$TRAVIS_TAG .
-      after_success:
-        - docker push c3genomics/ncov-tools:alpha
+        - ./.docker_login
+    
+    - stage: deploy       
+      - script:
+         -  docker tag c3genomics/ncov-tools c3genomics/ncov-tools:alpha
+         -  docker push c3genomics/ncov-tools:alpha
+       on:
+         condition: branch NOT IN (master)
+      - script:
+         -  docker tag c3genomics/ncov-tools c3genomics/ncov-tools:beta
+         -  docker push c3genomics/ncov-tools:beta
+       on:
+         branch: master
+      - script:
+         -  docker tag c3genomics/ncov-tools c3genomics/ncov-tools:$TRAVIS_TAG
+         -  docker push c3genomics/ncov-tools:$TRAVIS_TAG
+       on:
+         tags: true
