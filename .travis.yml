@@ -1,8 +1,12 @@
 services: docker
 language: python
 script:
-  - docker build  --tag c3genomics/ncov-tools .
+  -  docker pull c3genomics/ncov-tools:alpha
+  -  docker build  --tag c3genomics/ncov-tools .
+after_success:
   - ./.docker_login
+  -  docker tag c3genomics/ncov-tools c3genomics/ncov-tools:alpha
+  -  docker push c3genomics/ncov-tools:alpha 
 deploy:
   - provider: script
     script:
@@ -16,9 +20,3 @@ deploy:
       -  docker push c3genomics/ncov-tools:beta
     on:
         branch: master
-  - provider: script
-    script:
-      -  docker tag c3genomics/ncov-tools c3genomics/ncov-tools:alpha
-      -  docker push c3genomics/ncov-tools:alpha
-    on:
-      condition: branch NOT IN (master)
