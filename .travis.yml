@@ -12,6 +12,7 @@ deploy:
     script:
         -  docker tag c3genomics/ncov-tools c3genomics/ncov-tools:$TRAVIS_TAG
         -  docker push c3genomics/ncov-tools:$TRAVIS_TAG 
+        -  docker push c3genomics/ncov-tools:latest
     on:
       tags: true
   - provider: script
