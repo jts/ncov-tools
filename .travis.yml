@@ -1,7 +1,7 @@
 services: docker
 language: python
 script:
-  -  docker pull c3genomics/ncov-tools:alpha
+  -  docker pull c3genomics/ncov-tools:alpha || echo no alpha image in the repo
   -  docker build  --tag c3genomics/ncov-tools .
 after_success:
   - ./.docker_login
