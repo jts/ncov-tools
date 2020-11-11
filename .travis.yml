@@ -14,7 +14,7 @@ include:
       after_success:
         - test $TRAVIS_TAG  && docker push c3genomics/ncov-tools:$TRAVIS_TAG
     - stage: build beta
-      if branch != master
+      if branch != master:
       script:
         - docker build  --tag c3genomics/ncov-tools:$TRAVIS_TAG .
       after_success:
