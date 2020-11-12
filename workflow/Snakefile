@@ -1,7 +1,7 @@
 import glob
 import os
 
-singularity: "docker://poquirion/ncov-tools:latest"  # Set image to tagged version (not latest) in production
+singularity: "docker://c3genomics/ncov-tools:latest"  # Set image to tagged version (not latest) in production
 
 include: "rules/common.smk"
 include: "rules/sequencing.smk"
