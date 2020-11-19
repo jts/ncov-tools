@@ -29,13 +29,10 @@ Then create the ncov-tools environment using mamba
 mamba env create -f workflow/envs/environment.yml
 ```
 
-Either way, if you used conda directly or mamba, activate the conda package and install the `parser` package:
+Either way, if you used conda directly or mamba, activate the conda package:
 
 ```
 conda activate ncov-qc
-cd parser
-pip install -r requirements.txt
-pip install .
 ```
 
 ## Required Configuration
