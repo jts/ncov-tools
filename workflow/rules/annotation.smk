@@ -30,7 +30,7 @@ def get_recurrent_heatmap_plot(wildcards):
 #
 # Rules for annotating variants with functional consequence
 #
-rule annotate_snpeff:
+rule annotate_variants:
     input:
         get_recurrent_heatmap_plot
 
