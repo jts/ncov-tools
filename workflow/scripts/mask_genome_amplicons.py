@@ -60,8 +60,8 @@ def mask_genome(genome, amplicons, mask='N'):
     for record in fasta:
         sequence = record.sequence
         for _id in amplicons:
-            start = int(amplicons[_id]['start'])
-            end = int(amplicons[_id]['end'])
+            start = int(amplicons[_id]['start']) - 1
+            end = int(amplicons[_id]['end']) - 1
             mask_size = end - start + 1
             sequence = sequence[:start] + mask_size * mask + sequence[end+1:]
     return {'header' : record.name, 'sequence' : sequence}
