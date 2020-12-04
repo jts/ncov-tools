@@ -31,7 +31,6 @@ def get_amplicon_dictionary(file, amplicons, column=3, delimiter='_'):
     with open(file, 'r') as ifh:
         for amplicon in ifh:
             amplicon = amplicon.strip()
-            # amplicon_data.append(amplicon.split('\t'))
             _amplicon_data = amplicon.split('\t')
             _id = get_amplicon_id(amplicon=_amplicon_data[column])
             if _id in amplicons:
