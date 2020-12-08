@@ -7,10 +7,11 @@ def get_aa_table(wildcards):
     return out
 
 def get_vcf_file(wildcards):
+    data_root = config['data_root']
     if config['platform'] == 'illumina':
         pattern = "qc_annotation/{sample}.pass.vcf.gz"
     elif config['platform'] == 'oxford-nanopore':
-        pattern = "data/{sample}.pass.vcf.gz"
+        pattern = "{data_root}/{sample}.pass.vcf.gz"
     return pattern
 
 def get_snpeff_vcf_files(wildcards):
@@ -36,7 +37,7 @@ rule annotate_variants:
 
 rule convert_ivar_to_vcf:
     input:
-        "data/{sample}.variants.tsv"
+        expand(config['data_root'] + "/{{sample}}.variants.tsv")
     output:
         "qc_annotation/{sample}.pass.vcf"
     params:
