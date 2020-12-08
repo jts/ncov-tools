@@ -108,7 +108,11 @@ def process_variant_detail_dictionary(var, sample):
     var_meta = {'sample' : sample,
                 'consequence' : var_list[1],
                 'gene' : gene,
-                'protein' : protein}
+                'protein' : protein,
+                'chr' : str(var.CHROM),
+                'pos' : str(var.POS),
+                'ref' : str(var.REF),
+                'alt' : str(var.ALT)}
     return var_meta
 
 
@@ -128,12 +132,16 @@ def write_variant_file(vars, out):
                                   var['consequence'],
                                   var['gene'],
                                   var['protein'],
-                                  gene_protein]))
+                                  gene_protein,
+                                  var['chr'],
+                                  var['pos'],
+                                  var['ref'],
+                                  var['alt']]))
             fo_p.write('\n')
 
 
 def _variant_file_header():
-    return '\t'.join(['sample', 'Consequence', 'gene', 'protein', 'aa'])
+    return '\t'.join(['sample', 'Consequence', 'gene', 'protein', 'aa', 'chr', 'pos', 'ref', 'alt'])
 
 
 def main():
