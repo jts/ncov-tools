@@ -11,7 +11,7 @@ def get_vcf_file(wildcards):
     if config['platform'] == 'illumina':
         pattern = "qc_annotation/{sample}.pass.vcf.gz"
     elif config['platform'] == 'oxford-nanopore':
-        pattern = "{data_root}/{sample}.pass.vcf.gz"
+        pattern = data_root + "/{sample}.pass.vcf.gz"
     return pattern
 
 def get_snpeff_vcf_files(wildcards):
