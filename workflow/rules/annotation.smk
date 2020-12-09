@@ -1,6 +1,9 @@
+import os
+
 #
 # Helper functions
 #
+
 def get_aa_table(wildcards):
     pattern = "qc_annotation/{sample}_aa_table.tsv"
     out = [pattern.format(sample=s) for s in get_sample_names()]
@@ -34,6 +37,18 @@ def get_recurrent_heatmap_plot(wildcards):
 rule annotate_variants:
     input:
         get_recurrent_heatmap_plot
+
+rule build_snpeff_db:
+    input:
+        expand(os.environ['CONDA_PREFIX'] + '/share/snpeff-5.0-0/data/MN908947.3/snpEffectPredictor.bin')
+
+rule download_db_files:
+    output:
+        expand(os.environ['CONDA_PREFIX'] + '/share/snpeff-5.0-0/data/MN908947.3/snpEffectPredictor.bin')
+    params:
+        script=srcdir("../scripts/build_db.py")
+    shell:
+        "python {params.script}"
 
 rule convert_ivar_to_vcf:
     input:
