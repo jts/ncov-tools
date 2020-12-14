@@ -99,13 +99,6 @@ def get_alignment(reference_genome, input_genome):
         if query != '-':
             input_index += 1
 
-    if False:
-        for start in range(0, len(traceback.ref), columns):
-            print(traceback.ref[start:start+columns])
-            print(traceback.comp[start:start+columns])
-            print(traceback.query[start:start+columns])
-            print()
-
     return position_map
 
 # translate the coordinates of the amplicon set from reference coordinates
@@ -184,8 +177,12 @@ def main():
     detected_amplicons = get_detected_amplicons(file=args.negative_control_report)
     amplicon_dict = get_amplicon_dictionary(file=args.bed, amplicons=detected_amplicons)
     
-    position_map = get_alignment(reference_genome, input_genome)
-    amplicon_dict = translate_amplicons(position_map, amplicon_dict)
+    if len(input_genome.sequence) > 0:
+        position_map = get_alignment(reference_genome, input_genome)
+        amplicon_dict = translate_amplicons(position_map, amplicon_dict)
+    else:
+        position_map = list()
+        amplicon_dict = dict()
 
     sequence = mask_genome(genome=args.genome, amplicons=amplicon_dict)
     fasta = create_fasta(header=sequence['header'], sequence=sequence['sequence'])
