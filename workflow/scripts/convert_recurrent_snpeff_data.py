@@ -112,7 +112,7 @@ def process_variant_detail_dictionary(var, sample):
                 'chr' : str(var.CHROM),
                 'pos' : str(var.POS),
                 'ref' : str(var.REF),
-                'alt' : str(var.ALT)}
+                'alt' : str(convert_alt_list_to_string(alt=var.ALT))}
     return var_meta
 
 
@@ -129,19 +129,31 @@ def write_variant_file(vars, out):
             else:
                 gene_protein = 'NA'
             fo_p.write('\t'.join([var['sample'],
+                                  var['chr'],
+                                  var['pos'],
+                                  var['ref'],
+                                  var['alt'],
                                   var['consequence'],
                                   var['gene'],
                                   var['protein'],
                                   gene_protein,
-                                  var['chr'],
-                                  var['pos'],
-                                  var['ref'],
-                                  var['alt']]))
+                                  ]))
             fo_p.write('\n')
 
 
+def convert_alt_list_to_string(alt):
+    """
+    The ALT field in the VCF file is represented as a list, can convert this to
+    a comma seperated string.
+    """
+    _vars = list()
+    for _var in alt:
+        _vars.append(str(_var))
+    return ','.join(_vars)
+
+
 def _variant_file_header():
-    return '\t'.join(['sample', 'Consequence', 'gene', 'protein', 'aa', 'chr', 'pos', 'ref', 'alt'])
+    return '\t'.join(['sample', 'chr', 'pos', 'ref', 'alt', 'Consequence', 'gene', 'protein', 'aa'])
 
 
 def main():
