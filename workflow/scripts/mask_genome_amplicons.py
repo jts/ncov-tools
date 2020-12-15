@@ -140,7 +140,7 @@ def create_fasta(header, sequence):
     Create a FASTA record (includes header and sequence)
     """
     fasta_record = list()
-    fasta_record.append(''.join(['>', header]))
+    fasta_record.append(''.join(['>', header + "_masked"]))
     fasta_record = fasta_record + tw.wrap(str(sequence), width=60)
     return fasta_record
 
