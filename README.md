@@ -196,11 +196,21 @@ qc_reports/run_name_mixture_report.tsv
 SNVs and Indels are annotated using SNPEff.  The `MN908947.3` SNPEff database
 is part of the standard set of genomes.
 
+Currently the database is not available for download and requires building.  To
+download the NCBI gene file and build the database, run the following:
+
 ```
-snakemake -s qc/Snakefile --cores 2 annotate_variants
+snakemake -s workflow/Snakefile --cores 1 build_snpeff_db
 ```
 
-Variant annotation output can be found in `qc_annotation`.
+Once the database has been built, the workflow can be run using:
+
+```
+snakemake -s workflow/Snakefile --cores 2 annotate_variants
+```
+
+Variant annotation output can be found in `qc_annotation` and the recurrent
+amino acid change heatmap can be found in `plots/<prefix>_aa_mutation_heatmap.pdf`.
 
 
 ## Credit and Acknowledgements
