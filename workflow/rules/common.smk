@@ -190,6 +190,10 @@ def get_annotated_variants(wildcards):
     out = [pattern.format(sample=s) for s in get_sample_names()]
     return out
 
+def get_all_masked_consensus(wildcards):
+    return ["masked_fasta/{sample}.masked_consensus.fasta".format(sample=s) for s in get_sample_names()]
+    
+
 # generate the amplicon-level bed file from the input primer bed
 rule make_amplicon_bed:
     input:
@@ -202,6 +206,16 @@ rule make_amplicon_bed:
         bed_type_opt=get_primer_bed_type_opt
     shell:
         "{params.script} --primers {input.primers} --offset {params.offset} --bed_type {params.bed_type_opt} --output {output}"
+
+rule make_amplicon_full_bed:
+    input:
+        primers=get_primer_bed
+    output:
+        "bed/amplicon_full.bed"
+    params:
+        script="primers_to_amplicons.py"
+    shell:
+        "{params.script} --primers {input.primers} --bed_type full --output {output}"
 
 # make a bed file for the entire reference genome as a single record
 # from: https://bioinformatics.stackexchange.com/questions/91/how-to-convert-fasta-to-bed

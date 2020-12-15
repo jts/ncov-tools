@@ -7,6 +7,10 @@ rule all_qc_analysis:
     input:
         get_qc_analysis_plots
 
+rule all_masked_consensus:
+    input:
+        get_all_masked_consensus
+
 #
 # Make a tree
 #
@@ -73,6 +77,21 @@ rule make_lineage_assignments:
     threads: workflow.cores
     shell:
         "pangolin -t {threads} --outfile {output} {input}"
+
+# mask all genomes with Ns for any amplicons detected in the negative control
+rule make_masked_consensus:
+    input:
+        sample_consensus=get_consensus,
+        amplicons="bed/amplicon_full.bed",
+        negative_control_report=get_negative_control_report,
+        reference=get_reference_genome
+    output:
+        "masked_fasta/{sample}.masked_consensus.fasta"
+    threads: 1
+    params:
+        masking_script = srcdir("../scripts/mask_genome_amplicons.py")
+    shell:
+        "python {params.masking_script} -b {input.amplicons} -n {input.negative_control_report} -r {input.reference} -g {input.sample_consensus} -o {output}"
 
 # make the primary plot, containing the phylogenetic tree and associated mutations
 rule make_qc_tree_snps:
