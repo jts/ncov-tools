@@ -193,23 +193,30 @@ qc_reports/run_name_mixture_report.tsv
 ```
 
 ## Variant Annotation
-SNVs and Indels are annotated using ANNOVAR.  A custom `avGene` file was
-developed by the ANNOVAR authors with details provided on their website:
-`https://doc-openbio.readthedocs.io/projects/annovar/en/latest/`
+SNVs and Indels are annotated using SNPEff.  The `MN908947.3` SNPEff database
+is part of the standard set of genomes.
 
-ANNOVAR requires seperate installation and `table_annovar.pl` must be in the
-$PATH for proper execution.  The `Snakefile` supports the conversion of
-`.variants.tsv` and `.pass.vcf.gz` files for the Illumina and ONT platforms
-respectively.
+Currently the database is not available for download and requires building.  To
+download the NCBI gene file and build the database, run the following:
 
 ```
-snakemake -s qc/Snakefile --cores 2 annotate_variants
+snakemake -s workflow/Snakefile --cores 1 build_snpeff_db
 ```
 
-Variant annotation output can be found in `qc_annotation`.
+Once the database has been built, the workflow can be run using:
+
+```
+snakemake -s workflow/Snakefile --cores 2 annotate_variants
+```
+
+Variant annotation output can be found in `qc_annotation` and the recurrent
+amino acid change heatmap can be found in `plots/<prefix>_aa_mutation_heatmap.pdf`.
 
 
 ## Credit and Acknowledgements
 
-The tree-with-SNPs plot was inspired by a plot shared by Mads Albertsen.
+* The tree-with-SNPs plot was inspired by a plot shared by Mads Albertsen.
+
+* The script to convert `variants.tsv` files into `.vcf` files was obtained
+  from: `https://github.com/nf-core/viralrecon/blob/dev/bin/ivar_variants_to_vcf.py`
 
