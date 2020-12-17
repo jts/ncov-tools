@@ -61,9 +61,6 @@ data_root: run_200430
 # optionally the plots can have a "run name" prefix. If this is not defined the prefix will be "default"
 run_name: my_run
 
-# path to the file containing the amplicon regions (not the primer sites, the actual amplicons)
-amplicon_bed: resources/artic_amplicons.bed
-
 # path to the nCov reference genome
 reference_genome: resources/artic_reference.fasta
 
@@ -79,9 +76,6 @@ primer_bed: nCoV-2019.bed
 # no_primers -- amplicons including overlaps but with primers removed
 # unique_amplicons -- distinct amplicons regions with primers and overlapping regions removed
 bed_type: unique_amplicons
-
-# offset for the amplicons and primers
-offset: 0
 
 # minimum completeness threshold for inclusion to the SNP tree plot, if no entry
 # is provided the default is set to 0.75
