@@ -206,7 +206,7 @@ snakemake -s workflow/Snakefile --cores 1 build_snpeff_db
 Once the database has been built, the workflow can be run using:
 
 ```
-snakemake -s workflow/Snakefile --cores 2 annotate_variants
+snakemake -s workflow/Snakefile --cores 2 all_qc_variants
 ```
 
 Variant annotation output can be found in `qc_annotation` and the recurrent
