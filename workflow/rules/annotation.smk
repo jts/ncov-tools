@@ -34,7 +34,7 @@ def get_recurrent_heatmap_plot(wildcards):
 #
 # Rules for annotating variants with functional consequence
 #
-rule annotate_variants:
+rule all_qc_annotation:
     input:
         get_recurrent_heatmap_plot
 
