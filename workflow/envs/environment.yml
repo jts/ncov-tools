@@ -16,7 +16,7 @@ dependencies:
   - r-ggforce=0.3.1
   - bedtools
   - samtools
-  - parasail
+  - parasail-python
   - newick_utils
   - pip=19.3.1
   - minimap2
