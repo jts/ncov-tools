@@ -129,8 +129,15 @@ def get_qc_summary_metadata_opt(wildcards):
         return ""
 
 def get_variants(wildcards):
+    get_variants_for_sample(wildcards.sample)
+
+def get_variants_for_sample(sample_name):
     pattern = get_variants_pattern()
-    return pattern.format(data_root=config['data_root'], sample=wildcards.sample)
+    return pattern.format(data_root=config['data_root'], sample=sample_name)
+
+def get_variants_for_all_samples(wildcards):
+    samples = get_sample_names()
+    return [get_variants_for_sample(sn) for sn in samples]
 
 def get_platform_opt(wildcards):
     if "platform" in config:
