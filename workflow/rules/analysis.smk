@@ -92,7 +92,9 @@ rule make_ncov_watch_result:
     input:
         "qc_analysis/variants.fofn"
     output:
-        "qc_analysis/ncov_watch_variants.tsv"
+        "qc_reports/{prefix}_ncov_watch_variants.tsv"
+    params:
+        run_name_opt=get_run_name_opt
     shell:
         "cat {input} | ncov-watch -m spike_mutations > {output}"
 
