@@ -78,6 +78,26 @@ rule make_lineage_assignments:
     shell:
         "pangolin -t {threads} --outfile {output} {input}"
 
+# get a file containing the path to the variants tsv/vcfs for all samples
+rule make_variants_fofn:
+    input:
+        get_variants_for_all_samples
+    output:
+        "qc_analysis/variants.fofn"
+    shell:
+        'echo {input} | tr " " "\\n" > {output}'
+
+# run ncov-watch to flag variants of interest
+rule make_ncov_watch_result:
+    input:
+        "qc_analysis/variants.fofn"
+    output:
+        "qc_reports/{prefix}_ncov_watch_variants.tsv"
+    params:
+        run_name_opt=get_run_name_opt
+    shell:
+        "cat {input} | ncov-watch -m spike_mutations > {output}"
+
 # mask all genomes with Ns for any amplicons detected in the negative control
 rule make_masked_consensus:
     input:
