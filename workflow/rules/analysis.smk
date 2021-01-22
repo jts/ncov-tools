@@ -142,7 +142,10 @@ rule make_sample_qc_summary:
         alleles=get_run_alleles,
         samplecoverage="qc_sequencing/{sample}.per_base_coverage.bed",
         samplevariants=get_variants,
-        sampleconsensus=get_consensus
+        sampleconsensus=get_consensus,
+        lineagereport=get_lineage_report,
+        aa_table="qc_annotation/{sample}_aa_table.tsv",
+        watch=get_watch_variants_report
     output:
         "qc_analysis/{sample}.summary.qc.tsv"
     params:
@@ -157,6 +160,9 @@ rule make_sample_qc_summary:
                             --indel \
                             --consensus {input.sampleconsensus} {params.platform_opt} \
                             --sample {wildcards.sample} \
+                            --lineage {input.lineagereport} \
+                            --aa_table {input.aa_table} \
+                            --mutations {input.watch} \
                             --run_name {params.run_name_opt} > {output}"
 
 # merge the per-sample summary files into the run-level report

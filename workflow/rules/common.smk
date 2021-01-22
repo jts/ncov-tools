@@ -95,11 +95,16 @@ def get_tree_consensus_sequences(wildcards):
     return consensus_sequences
 
 def get_tree_plot_input(wildcards):
-
-    input_list = ["qc_analysis/{prefix}_tree.nwk", "qc_analysis/{prefix}_alleles.tsv"]
-    if "assign_lineages" in config and config["assign_lineages"]:
-        input_list.append("lineages/{prefix}_lineage_report.csv")
+    input_list = ["qc_analysis/{prefix}_tree.nwk", "qc_analysis/{prefix}_alleles.tsv", "lineages/{prefix}_lineage_report.csv"]
     return input_list
+
+def get_lineage_report(wildcards):
+    lineage_report = f"lineages/{config['run_name']}_lineage_report.csv"
+    return lineage_report
+
+def get_watch_variants_report(wildcards):
+    watch_variants_report = f"qc_reports/{config['run_name']}_ncov_watch_variants.tsv"
+    return watch_variants_report
 
 def get_qc_sequencing_plots(wildcards):
     prefix = get_run_name()
