@@ -137,7 +137,6 @@ rule make_sample_qc_summary:
         "qc_analysis/{sample}.summary.qc.tsv"
     params:
         py_script="get_qc.py",
-        #py_script="PYTHONPATH=/.mounts/labs/simpsonlab/projects/ncov/code/ncov-parser:$PYTHONPATH ; python /.mounts/labs/simpsonlab/projects/ncov/code/ncov-parser/bin/get_qc.py",
         metadata_opt=get_qc_summary_metadata_opt,
         platform_opt=get_platform_opt,
         run_name_opt=get_run_name_opt
