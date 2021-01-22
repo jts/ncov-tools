@@ -69,9 +69,10 @@ rule make_report_tex:
     params:
         script=srcdir("../scripts/generate_report.py"),
         run_name=get_run_name,
-        platform_opt=get_platform_opt
+        platform_opt=get_platform_opt,
+        voc_lineages=get_voc_pango_lineages
     shell:
-        "python {params.script} --run-name {params.run_name} {params.platform_opt} > {output}"
+        "python {params.script} --run-name {params.run_name} --voc-lineages {params.voc_lineages} {params.platform_opt} > {output}"
 
 # generate the PDF from the .tex report
 rule make_report_pdf:

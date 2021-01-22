@@ -19,7 +19,9 @@ def get_variants_pattern():
         return config.get("variants_pattern", "{data_root}/{sample}.variants.tsv")
     elif config['platform'] == 'oxford-nanopore':
         return config.get("variants_pattern", "{data_root}/{sample}.pass.vcf.gz")
-
+    else:
+        sys.stderr.write("Error, unknown platform %s\n" % (config['platform']))
+        sys.exit(1)
 #
 def get_metadata_file(wildcards):
     return config.get("metadata", "").format(data_root=config["data_root"])
@@ -47,3 +49,11 @@ def get_completeness_threshold(wildcards):
 #
 def get_sarscov2db_opt(wildcards):
     return config.get("sarscov2db", "")
+
+#
+def get_watch_mutation_set(wildcards):
+    return config.get("mutation_set", "spike_mutations")
+
+#
+def get_voc_pango_lineages(wildcards):
+    return config.get("voc_pango_lineages", "B.1.1.7,B.1.351,P.1")

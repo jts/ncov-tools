@@ -78,6 +78,18 @@ rule make_lineage_assignments:
     shell:
         "pangolin -t {threads} --outfile {output} {input}"
 
+# write pangolin version information to a file
+# this depends on the pangolin output file to
+# trigger it to be rebuilt after every pangolin run
+rule make_pangolin_version:
+    input:
+        "lineages/{prefix}_lineage_report.csv"
+    output:
+        "lineages/{prefix}_pangolin_version.txt"
+    shell:
+        "pangolin -v > {output}; pangolin -lv >> {output}; pangolin -pv >> {output}"
+
+
 # get a file containing the path to the variants tsv/vcfs for all samples
 rule make_variants_fofn:
     input:
@@ -94,9 +106,10 @@ rule make_ncov_watch_result:
     output:
         "qc_reports/{prefix}_ncov_watch_variants.tsv"
     params:
-        run_name_opt=get_run_name_opt
+        run_name_opt=get_run_name_opt,
+        mutation_set=get_watch_mutation_set
     shell:
-        "cat {input} | ncov-watch -m spike_mutations > {output}"
+        "cat {input} | ncov-watch -m {params.mutation_set} > {output}"
 
 # mask all genomes with Ns for any amplicons detected in the negative control
 rule make_masked_consensus:

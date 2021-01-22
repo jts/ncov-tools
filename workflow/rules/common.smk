@@ -129,7 +129,7 @@ def get_qc_summary_metadata_opt(wildcards):
         return ""
 
 def get_variants(wildcards):
-    get_variants_for_sample(wildcards.sample)
+    return get_variants_for_sample(wildcards.sample)
 
 def get_variants_for_sample(sample_name):
     pattern = get_variants_pattern()
@@ -170,6 +170,9 @@ def get_ambiguous_report(wildcards):
 
 def get_qc_reports(wildcards):
     out = [ get_qc_summary(wildcards) ]
+
+    prefix = get_run_name()
+    out.append("lineages/%s_pangolin_version.txt" % (prefix))
 
     # currently these reports are only generated for illumina data
     if config.get("platform") == "illumina":

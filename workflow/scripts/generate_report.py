@@ -8,18 +8,21 @@ import sys
 import os
 import re
 
+from functools import partial
+
 #
 # utility class to assist in converting
 # a tsv into a latex table - it can
 # rename header columns (name_map)
 # perform arbitrary transforms (row_func)
-# and filter out columns
+# and filter out columns/rows
 #
 class TableFormatter:
     def __init__(self):
         self.name_map = dict()
         self.row_func = dict()
         self.column_filter = dict()
+        self.row_accept = None
         self.table_spec = ""
         self.size = "normalsize"
 
@@ -90,6 +93,10 @@ def tsv_to_table(filename, table_formatter):
             # remove columns
             for k in table_formatter.column_filter:
                 del row[k]
+
+            # skip rows that fail the row filter, if any
+            if table_formatter.row_accept is not None and not table_formatter.row_accept(row):
+                continue
 
             if len(header) == 0:
 
@@ -243,7 +250,7 @@ def write_summary_qc_section():
     print(r"\section{Sample-level QC}")
     print(r"This table contains QC metrics and warning flags for each sample within this sequencing run.")
 
-    tf = TableFormatter
+    tf = TableFormatter()
     tf.size = "scriptsize"
     tf.name_map = { "sample" : "Sample",
                     "num_consensus_snvs" :  "Consensus SNVs",
@@ -262,9 +269,57 @@ def write_summary_qc_section():
 
     tf.column_filter = [ "run_name", "mean_sequencing_depth", 
                          "median_sequencing_depth", "num_consensus_n", 
-                         "num_weeks", "scaled_variants_snvs" ]
+                         "num_weeks", "scaled_variants_snvs", "lineage", "watch_mutations" ]
     tf.table_spec = "{|c|C{1.3cm}|C{1.3cm}|C{1.0cm}|C{1.0cm}|C{1.0cm}|c|c|C{1.2cm}|C{4.0cm}|}"
     tsv_to_table(args.summary_qc_table.format(run_name=args.run_name), tf)
+
+# this is used to pull out samples from the summary qc file that should
+# appear in the flagged sample section
+def flagged_sample_accept(accept_lineages, row):
+    return row['watch_mutations'] != "none" or row['lineage'] in accept_lineages
+
+# write the section containing samples that are VOCs or have notable mutations
+def write_flagged_sample_section():
+    print(r"\section{Flagged Samples}")
+    print(r"This table contains samples assigned to VOC lineage by PANGO or contains a notable mutation.\\")
+
+    pangolin_version = list()
+    with open(args.pangolin_version.format(run_name=args.run_name)) as f:
+        for line in f:
+            pangolin_version.append(line.rstrip())
+
+    if len(pangolin_version) > 0:
+        print("PANGO assignments were made with %s." % (", ".join(pangolin_version)))
+
+    tf = TableFormatter()
+    tf.size = "normalsize"
+    tf.name_map = { "sample" : "Sample",
+                    "lineage" : "Lineage",
+                    "watch_mutations" : "Notable Mutations" }
+
+    tf.row_func = { "watch_mutations" : lambda value : value.replace(",", ", ") }
+
+    tf.row_accept = partial(flagged_sample_accept, args.voc_lineages.split(","))
+
+    # Discard most columns
+    tf.column_filter = [ "run_name", 
+                         "mean_sequencing_depth",
+                         "qpcr_ct",
+                         "num_consensus_snvs", 
+                         "num_consensus_iupac", 
+                         "num_variants_snvs", 
+                         "num_variants_indel", 
+                         "num_variants_indel_triplet", 
+                         "genome_completeness",
+                         "median_sequencing_depth",
+                         "collection_date",
+                         "num_consensus_n", 
+                         "num_weeks", 
+                         "scaled_variants_snvs",
+                         "qc_pass" ]
+    tf.table_spec = "{|c|c|c|}"
+    tsv_to_table(args.summary_qc_table.format(run_name=args.run_name), tf)
+
 
 # parse arguments, defaults are based on ncov-tools paths/filenames
 parser = argparse.ArgumentParser()
@@ -274,6 +329,8 @@ parser.add_argument('--tree-figure', type=str, default="plots/{run_name}_tree_sn
 parser.add_argument('--ambiguity-table', type=str, default="qc_reports/{run_name}_ambiguous_position_report.tsv")
 parser.add_argument('--mixture-table', type=str, default="qc_reports/{run_name}_mixture_report.tsv")
 parser.add_argument('--summary-qc-table', type=str, default="qc_reports/{run_name}_summary_qc.tsv")
+parser.add_argument('--pangolin-version', type=str, default="lineages/{run_name}_pangolin_version.txt")
+parser.add_argument('--voc-lineages', type=str, default="")
 parser.add_argument('--negative-control-tsv', type=str, default="")
 parser.add_argument('--run-name', type=str, default="", required=True)
 parser.add_argument('--platform', type=str, default="", required=True)
@@ -290,6 +347,8 @@ print("QC report generated for %s on %s by ncov-tools" % (escape_latex(args.run_
 write_tree_section()
 
 write_negative_control_section()
+
+write_flagged_sample_section()
 
 write_summary_qc_section()
 
