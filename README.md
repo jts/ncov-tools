@@ -49,7 +49,8 @@ As an example, let's say your data is laid out in the following structure:
      sampleB.consensus.fasta
    resources/
      artic_reference.fasta
-     artic_amplicons.bed
+     V3/
+        nCoV-2019.bed
 ```
 
 Then your config.yaml should look like:
@@ -68,18 +69,8 @@ reference_genome: resources/artic_reference.fasta
 platform: "oxford-nanopore"
 
 # path to the BED file containing the primers, this should follow the format downloaded from
-# the ARTIC primer
-primer_bed: nCoV-2019.bed
-
-# list the type of amplicon BED file that will be created from the "primer_bed".  This can include:
-# full -- amplicons including primers and overlaps listed in the primer BED file
-# no_primers -- amplicons including overlaps but with primers removed
-# unique_amplicons -- distinct amplicons regions with primers and overlapping regions removed
-bed_type: unique_amplicons
-
-# minimum completeness threshold for inclusion to the SNP tree plot, if no entry
-# is provided the default is set to 0.75
-completeness_threshold: 0.9
+# the ARTIC repository
+primer_bed: resources/V3/nCoV-2019.bed
 ```
 
 The pipeline is designed to work with the results of `ivar` (illumina) or the artic-ncov2019/fieldbioinformatics workflow (oxford nanopore). It will automatically detect the names of the output files (BAMs, consensus fasta, variants) from these workflows using the `platform` value. If you used a different workflow, you can set the following options to help the pipeline find your files:
@@ -106,7 +97,7 @@ Some plots and QC statistics can be augmented with metadata like the qPCR Ct val
 metadata: "/path/to/metadata.tsv"
 ```
 
-The expected metadata file is a sample TSV with up to three fields:
+The expected metadata file is a simple TSV with a `sample` field and optional `ct` and `date` fields. Other fields can be provided but will be ignored.
 
 ```
 sample   ct     date
@@ -133,10 +124,21 @@ negative_control_samples: [ "NTC-1", "NTC-2" ]
 #
 tree_include_consensus: some_genomes_from_gisaid.fasta
 
-#
-# set this flag to true to include lineage assignments with pangolin in the output plots
-#
-assign_lineages: true
+# list the type of amplicon BED file that will be created from the "primer_bed".  This can include:
+# full -- amplicons including primers and overlaps listed in the primer BED file
+# no_primers -- amplicons including overlaps but with primers removed
+# unique_amplicons -- distinct amplicons regions with primers and overlapping regions removed
+bed_type: unique_amplicons
+
+# minimum completeness threshold for inclusion to the SNP tree plot, if no entry
+# is provided the default is set to 0.75
+completeness_threshold: 0.9
+
+# the set of mutations to automatically flag in the QC reports
+# this can be the name of one of the watchlists built into ncov-watch
+# or the path to a local VCF file. 
+# Built in lists: https://github.com/jts/ncov-watch/tree/master/ncov_watch/watchlists
+mutation_set: spike_mutations
 ```
 
 ## Running
@@ -158,6 +160,13 @@ There is also an  `all` rule that executes the three rules noted above in one `s
 ```
 # Build all the reports and plots
 snakemake -s workflow/Snakefile all
+```
+
+You can also build a single PDF summary with the main plots and results. This requires a working 
+installation of pdflatex, which is not provided through the environment
+
+```
+snakemake -s workflow/Snakefile all_final_report
 ```
 
 
