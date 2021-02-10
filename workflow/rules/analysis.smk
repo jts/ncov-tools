@@ -87,7 +87,7 @@ rule make_pangolin_version:
     output:
         "lineages/{prefix}_pangolin_version.txt"
     shell:
-        "pangolin -v > {output}; pangolin -lv >> {output}; pangolin -pv >> {output}"
+        "pangolin -v > {output}; pangolin -pv >> {output}"
 
 
 # get a file containing the path to the variants tsv/vcfs for all samples
