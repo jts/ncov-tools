@@ -76,7 +76,7 @@ rule make_lineage_assignments:
         "lineages/{prefix}_lineage_report.csv"
     threads: workflow.cores
     shell:
-        "pangolin -t {threads} --outfile {output} {input}"
+        "pangolin --outfile {output} {input}"
 
 # write pangolin version information to a file
 # this depends on the pangolin output file to
