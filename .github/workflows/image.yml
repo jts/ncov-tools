@@ -3,9 +3,6 @@ name: build-image
 
 on:
   push:
-    branches:
-    tags:
-      - 'v*'
 jobs:
   build:
     runs-on: ubuntu-latest
