@@ -8,12 +8,10 @@ RUN conda install pycryptosat \
  && conda config --set channel_priority strict
 
 ENV NCOV ncov-qc
-# make that two steps (base and then tools)
 ADD workflow/envs/environment.yml environment.yml
-ADD parser parser
 RUN conda env create --name $NCOV -f environment.yml \
     && rm -rf /opt/conda/pkgs/
-RUN /opt/conda/envs/$NCOV/bin/pip install ./parser
+# make sure that container is not polluted by ~/.local install
 ENV PYTHONNOUSERSITE=1
 RUN mkdir -p /app/workdir
 ADD workflow /app
@@ -23,7 +21,7 @@ WORKDIR /app/workdir
 RUN  mkdir -p /.singularity.d/env \
   && echo ". /etc/profile.d/conda.sh" >> /etc/bash.bashrc \
   && echo ". /etc/profile.d/conda.sh" >>  /.singularity.d/env/999-conda.sh \
-  && echo "conda activate $NCOV" >>  /etc/bash.bashrc \
-  && echo "conda activate $NCOV" >> /.singularity.d/env/999-conda.sh \
+  && echo "conda activate $NCOV 2>/dev/null" >>  /etc/bash.bashrc \
+  && echo "conda activate $NCOV 2>/dev/null" >> /.singularity.d/env/999-conda.sh \
   && rm /root/.bashrc && rm /bin/sh && ln -s /bin/bash /bin/sh
-#docker build --tag ncov-tools .  &&  singularity build ../.snakemake/singularity/7f0a6cf10df7320052c57c5468fcf292.simg docker-daemon://ncov-tools:latest
+#docker build --tag ncov-tools .  &&  singularity build ncov_tools.simg docker-daemon://ncov-tools:latest

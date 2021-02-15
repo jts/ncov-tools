@@ -1,0 +1,55 @@
+---
+name: build-image
+
+on:
+  push:
+    branches:
+    tags:
+      - 'v*'
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      GH_REPO: poquirion/ncov-tools
+    steps:
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+      - name: Login to DockerHub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Build on all branch
+        id: alpha
+        uses: docker/build-push-action@v2
+        with:
+          push: true
+          tags: ${{ env.GH_REPO }}:alpha
+          cache-from: type=registry,ref=${{ env.GH_REPO }}:alpha
+          cache-to: type=inline
+      -
+        name: Docker meta
+        id: docker_meta
+        uses: crazy-max/ghaction-docker-meta@v1
+        with:
+          images: ${{ env.GH_REPO }} # list of Docker images to use as base name for tags
+          tag-sha: true # add git short SHA as Docker tag
+      - name: push latest
+        if: ${{ github.ref == 'ref/head/master' }}
+        id: latest
+        uses: docker/build-push-action@v2
+        with:
+          push: true
+          tags: ${{ env.GH_REPO }}:latest
+          cache-from: type=registry,ref=${{ env.GH_REPO }}:alpha
+          cache-to: type=inline
+      - name: push tag
+        if: contains(github.ref, 'tags/v')
+        id: tag
+        uses: docker/build-push-action@v2
+        with:
+          push: true
+          cache-from: type=registry,ref=${{ env.GH_REPO }}:alpha
+          cache-to: type=inline
+          tags: ${{ steps.docker_meta.outputs.tags }}
+          labels: ${{ steps.docker_meta.outputs.labels }}
