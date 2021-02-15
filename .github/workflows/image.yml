@@ -7,7 +7,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      GH_REPO: poquirion/ncov-tools
+      GH_REPO: c3genomics/ncov-tools
     steps:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
