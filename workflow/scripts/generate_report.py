@@ -269,7 +269,7 @@ def write_summary_qc_section():
 
     tf.column_filter = [ "run_name", "mean_sequencing_depth", 
                          "median_sequencing_depth", "num_consensus_n", 
-                         "num_weeks", "scaled_variants_snvs", "lineage", "watch_mutations" ]
+                         "num_weeks", "scaled_variants_snvs", "lineage", "lineage_notes", "watch_mutations" ]
     tf.table_spec = "{|c|C{1.3cm}|C{1.3cm}|C{1.0cm}|C{1.0cm}|C{1.0cm}|c|c|C{1.2cm}|C{4.0cm}|}"
     tsv_to_table(args.summary_qc_table.format(run_name=args.run_name), tf)
 
@@ -295,9 +295,11 @@ def write_flagged_sample_section():
     tf.size = "normalsize"
     tf.name_map = { "sample" : "Sample",
                     "lineage" : "Lineage",
+                    "lineage_notes" : "Pangolin Notes",
                     "watch_mutations" : "Notable Mutations" }
 
-    tf.row_func = { "watch_mutations" : lambda value : value.replace(",", ", ") }
+    tf.row_func = { "watch_mutations" : lambda value : value.replace(",", ", "),
+                    "lineage_notes" : lambda value : value.split("_")[0] }
 
     tf.row_accept = partial(flagged_sample_accept, args.voc_lineages.split(","))
 
@@ -317,7 +319,7 @@ def write_flagged_sample_section():
                          "num_weeks", 
                          "scaled_variants_snvs",
                          "qc_pass" ]
-    tf.table_spec = "{|c|c|c|}"
+    tf.table_spec = "{|c|c|c|c|}"
     tsv_to_table(args.summary_qc_table.format(run_name=args.run_name), tf)
 
 
