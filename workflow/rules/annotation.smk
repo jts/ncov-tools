@@ -1,5 +1,5 @@
 import os
-
+import re
 #
 # Helper functions
 #
@@ -14,8 +14,14 @@ def get_vcf_file(wildcards):
     if config['platform'] == 'illumina':
         pattern = "qc_annotation/{sample}.pass.vcf.gz"
     elif config['platform'] == 'oxford-nanopore':
-        pattern = data_root + "/{sample}.pass.vcf.gz"
+        vcf_pattern = get_variants_pattern()
+        pattern = vcf_pattern.format(data_root=config['data_root'], sample=wildcards.sample)
     return pattern
+
+def get_variants_file(wildcards):
+    pattern = get_variants_pattern()
+    out = pattern.format(data_root=config['data_root'], sample=wildcards.sample)
+    return out
 
 def get_snpeff_vcf_files(wildcards):
     pattern = "qc_annotation/{sample}.ann.vcf"
@@ -52,7 +58,7 @@ rule download_db_files:
 
 rule convert_ivar_to_vcf:
     input:
-        expand(config['data_root'] + "/{{sample}}.variants.tsv")
+        get_variants_file
     output:
         "qc_annotation/{sample}.pass.vcf"
     params:
