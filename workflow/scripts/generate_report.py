@@ -195,7 +195,11 @@ def write_tree_section():
     print("\section{Sequence Variation}")
    
     tree_plot_path = args.tree_figure.format(run_name=args.run_name)
-    write_image(tree_plot_path, 0.4)
+
+    if os.path.isfile(tree_plot_path):
+        write_image(tree_plot_path, 0.4)
+    else:
+        print(r"SNP tree plot not found")
 
     # Ambiguity subsection
     print(r"\subsection{Ambiguity Report}")

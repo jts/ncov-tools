@@ -42,6 +42,9 @@ def get_primer_offset(wildcards):
 def get_primer_bed_type_opt(wildcards):
     return config.get("bed_type", "unique_amplicons")
 
+def get_snp_tree_flag(wildcards=None):
+    return config.get("build_snp_tree", True)
+
 #
 def get_completeness_threshold(wildcards):
     return config.get("completeness_threshold", 0.75)

@@ -118,8 +118,11 @@ def get_qc_sequencing_plots(wildcards):
 
 def get_qc_analysis_plots(wildcards):
     prefix = get_run_name()
-    out = [ "plots/%s_tree_snps.pdf" % (prefix),
-            "plots/%s_amplicon_coverage_heatmap.pdf" % (prefix) ]
+    out = [ "plots/%s_amplicon_coverage_heatmap.pdf" % (prefix) ]
+
+    if get_snp_tree_flag():
+        out.append("plots/%s_tree_snps.pdf" % (prefix))
+
     return out
 
 def get_qc_summary(wildcards):
@@ -191,7 +194,10 @@ def get_qc_reports(wildcards):
 
 def get_report_tex_input(wildcards):
     out = get_qc_reports(wildcards)
-    out.append("plots/%s_tree_snps.pdf" % (wildcards.prefix))
+
+    if get_snp_tree_flag():
+        out.append("plots/%s_tree_snps.pdf" % (wildcards.prefix))
+
     if len(get_negative_control_samples()) > 0:
         out.append("plots/%s_depth_by_position_negative_control.pdf" % (wildcards.prefix))
     return out
