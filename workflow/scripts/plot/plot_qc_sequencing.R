@@ -92,6 +92,17 @@ read_qc_csv <- function(fn) {
     return(df)
 }
 
+# check if metadata has at least 2 ct values (NA not included)
+is_metadata_ct_valid <- function(metadata) {
+    metadata <- metadata[!is.na(metadata$ct),]
+    num_cts <- length(unique(metadata$ct))
+    if (num_cts > 1) {
+        return(TRUE)
+    } else {
+        return(FALSE)
+    }
+}
+
 library(ggplot2)
 library(dplyr)
 library(ggforce)
@@ -143,7 +154,11 @@ if(!interactive()) {
     } else if(args$plot_type == "amplicon_depth_by_ct") {
 
         df <- read_glob("qc_sequencing", "*.amplicon_depth.bed")
-        plot_depth_by_amplicon_and_ct(df, metadata, args$output)
+        if (!is_metadata_ct_valid(metadata=metadata)) {
+            paste(sep="", "Metadata must have at least 2 ct values")
+        } else {
+            plot_depth_by_amplicon_and_ct(df, metadata, args$output)
+        }
 
     } else if(args$plot_type == "amplicon_covered_fraction") {
 
