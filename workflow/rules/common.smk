@@ -5,6 +5,8 @@ include: "defaults.smk"
 
 configfile: "config.yaml"
 
+import csv
+
 def get_sample_names():
 
     # if defined in the config, use that
@@ -106,13 +108,31 @@ def get_watch_variants_report(wildcards):
     watch_variants_report = f"qc_reports/{config['run_name']}_ncov_watch_variants.tsv"
     return watch_variants_report
 
+# check if there are "ct" values other than NA in the metadata
+def is_ct_metadata_valid(wildcards):
+    metadata_file = get_metadata_file(wildcards)
+    df = list()
+    with open(metadata_file, 'r') as fh:
+        reader = csv.DictReader(fh, delimiter='\t')
+        for line in reader:
+            df.append(line)
+    fh.close()
+    na_ct_counter = 0
+    for item in df:
+        if item['ct'] == 'NA':
+            na_ct_counter += 1
+    if na_ct_counter == len(df):
+        return False
+    else:
+        return True
+
 def get_qc_sequencing_plots(wildcards):
     prefix = get_run_name()
     out = [ "plots/%s_amplicon_covered_fraction.pdf" % (prefix),
             "plots/%s_depth_by_position.pdf" % (prefix) ]
 
     # add plots that need Ct values
-    if get_metadata_file(wildcards) != "":
+    if get_metadata_file(wildcards) != "" and is_ct_metadata_valid(wildcards):
         out.append("plots/%s_amplicon_depth_by_ct.pdf" % (prefix))
     return out
 
