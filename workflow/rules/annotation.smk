@@ -11,11 +11,15 @@ def get_aa_table(wildcards):
 
 def get_vcf_file(wildcards):
     data_root = config['data_root']
-    if config['platform'] == 'illumina':
+    variants_pattern = get_variants_pattern()
+    is_vcf = variants_pattern.endswith(".vcf") or variants_pattern.endswith(".vcf.gz")
+    
+    if is_vcf:
+        pattern = variants_pattern.format(data_root=config['data_root'], sample=wildcards.sample)
+    else:
+        # assume illumina ivar pipeline, this will trigger conversion
+        assert(config['platform'] == 'illumina')
         pattern = "qc_annotation/{sample}.pass.vcf.gz"
-    elif config['platform'] == 'oxford-nanopore':
-        vcf_pattern = get_variants_pattern()
-        pattern = vcf_pattern.format(data_root=config['data_root'], sample=wildcards.sample)
     return pattern
 
 def get_variants_file(wildcards):
@@ -68,9 +72,9 @@ rule convert_ivar_to_vcf:
 
 rule compress_vcf:
     input:
-        "qc_annotation/{sample}.pass.vcf"
+        "qc_annotation/{prefix}.vcf"
     output:
-        "qc_annotation/{sample}.pass.vcf.gz"
+        "qc_annotation/{prefix}.vcf.gz"
     shell:
         "gzip {input}" 
 
