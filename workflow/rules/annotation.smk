@@ -41,6 +41,14 @@ def get_recurrent_heatmap_plot(wildcards):
     out = "plots/%s_aa_mutation_heatmap.pdf" % (prefix)
     return out
 
+def get_snpeff_dirs():
+    snpeff_dirs = list()
+    for snpeff_dir in os.scandir('/'.join([os.environ['CONDA_PREFIX'], 'share'])):
+        if snpeff_dir.name.startswith('snpeff'):
+            snpeff_dirs.append(snpeff_dir.name)
+    return snpeff_dirs
+
+
 #
 # Rules for annotating variants with functional consequence
 #
@@ -50,11 +58,13 @@ rule all_qc_annotation:
 
 rule build_snpeff_db:
     input:
-        expand(os.environ['CONDA_PREFIX'] + '/share/snpeff-5.0-0/data/MN908947.3/snpEffectPredictor.bin')
+        expand(os.environ['CONDA_PREFIX'] + '/share/{snpeff_dir}/data/MN908947.3/snpEffectPredictor.bin', snpeff_dir=get_snpeff_dirs())
 
 rule download_db_files:
+    input:
+        expand(os.environ['CONDA_PREFIX'] + '/share/{snpeff_dir}', snpeff_dir=get_snpeff_dirs())
     output:
-        expand(os.environ['CONDA_PREFIX'] + '/share/snpeff-5.0-0/data/MN908947.3/snpEffectPredictor.bin')
+        expand(os.environ['CONDA_PREFIX'] + '/share/{snpeff_dir}/data/MN908947.3/snpEffectPredictor.bin', snpeff_dir=get_snpeff_dirs())
     params:
         script=srcdir("../scripts/build_db.py")
     shell:
