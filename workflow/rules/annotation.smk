@@ -86,9 +86,10 @@ rule run_snpeff:
     params:
         script="snpEff",
         db="MN908947.3",
-        aa_letter="-hgvs1LetterAa"
+        aa_letter="-hgvs1LetterAa",
+        no_log="-noLog"
     shell:
-        "{params.script} {params.aa_letter} {params.db} {input} > {output}"
+        "{params.script} {params.no_log} {params.aa_letter} {params.db} {input} > {output}"
 
 
 rule convert_annotated_vcf_to_aa_table:
