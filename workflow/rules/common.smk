@@ -119,6 +119,7 @@ def get_qc_sequencing_plots(wildcards):
 def get_qc_analysis_plots(wildcards):
     prefix = get_run_name()
     out = [ "plots/%s_amplicon_coverage_heatmap.pdf" % (prefix) ]
+    out.append("plots/%s_amplicon_coverage_boxplot.pdf" % (prefix))
 
     if get_snp_tree_flag():
         out.append("plots/%s_tree_snps.pdf" % (prefix))

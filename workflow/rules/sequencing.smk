@@ -126,6 +126,17 @@ rule make_qc_plot_amplicon_coverage_heatmap:
     shell:
         "Rscript {params.plot_script} --path qc_sequencing --output {output.plot} --table {output.table}"
 
+rule make_qc_plot_amplicon_coverage_boxplot:
+    input:
+        "qc_analysis/{prefix}_amplicon_coverage_table.tsv"
+    output:
+        "plots/{prefix}_amplicon_coverage_boxplot.pdf"
+    params:
+        coverage_threshold=get_boxplot_coverage_threshold,
+        plot_script = srcdir("../scripts/plot/plot_amplicon_coverage_boxplot.R")
+    shell:
+        "Rscript {params.plot_script} --file {input} --threshold {params.coverage_threshold} --output {output}"
+
 def get_metadata_opt(wildcards):
     metadata_file = get_metadata_file(wildcards)
     if metadata_file != "":

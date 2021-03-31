@@ -60,3 +60,8 @@ def get_watch_mutation_set(wildcards):
 #
 def get_voc_pango_lineages(wildcards):
     return config.get("voc_pango_lineages", "B.1.1.7,B.1.351,P.1")
+
+# boxplot coverage threshold to identify potential failed amplicons
+def get_boxplot_coverage_threshold(wildcards):
+    return config.get("boxplot_coverage_threshold", "20.0")
+
