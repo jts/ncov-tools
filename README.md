@@ -215,6 +215,28 @@ snakemake -s workflow/Snakefile --cores 2 all_qc_annotation
 Variant annotation output can be found in `qc_annotation` and the recurrent
 amino acid change heatmap can be found in `plots/<prefix>_aa_mutation_heatmap.pdf`.
 
+### BCFTools CSQ
+In addition to SNPEff annotation, an implementation of `bcftools csq` has been
+included as a possible replacement.  `bcftools csq` requires a GFF3 annotation
+file which can be obtained here:
+```
+ftp://ftp.ensemblgenomes.org/pub/viruses/gff3/sars_cov_2
+```
+
+A new entry in the `config.yaml` file is required to reference the full path to
+the GFF annotation file.
+```
+annotation_gff: /full/path/to/annotation/file/Sars_cov_2.ASM985889v3.101.gff3.gz
+```
+
+To execute `bcftools csq` run the following rule:
+```
+snakemake -s /path/to/ncov-tools/workflow/Snakefile --cores 2 run_bcftools
+```
+
+The compressed VCF file with annotations will be located in a directory labelled:
+`qc_bcftools`.
+
 
 ## Credit and Acknowledgements
 
