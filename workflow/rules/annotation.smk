@@ -48,10 +48,22 @@ def get_snpeff_dirs():
             snpeff_dirs.append(snpeff_dir.name)
     return snpeff_dirs
 
+def get_bcftools_vcf_files(wildcards):
+    """
+    Return a list of bcftools csq VCF files
+    """
+    pattern = "qc_bcftools/{sample}.csq.tsv"
+    #pattern = "qc_bcftools/{sample}.csq.vcf.gz"
+    out = [pattern.format(sample=s) for s in get_sample_names()]
+    return out
 
 #
 # Rules for annotating variants with functional consequence
 #
+rule run_bcftools:
+    input:
+        get_bcftools_vcf_files
+
 rule all_qc_annotation:
     input:
         get_recurrent_heatmap_plot
@@ -86,7 +98,7 @@ rule compress_vcf:
     output:
         "qc_annotation/{prefix}.vcf.gz"
     shell:
-        "gzip {input}" 
+        "bgzip {input} && tabix -p vcf {output}" 
 
 rule run_snpeff:
     input:
@@ -123,4 +135,20 @@ rule create_recurrent_mutation_heatmap:
         threshold=get_threshold_opt
     shell:
         "Rscript {params.script} --path qc_annotation --output {output} --threshold {params.threshold}"
+
+
+rule run_bcftools_csq:
+    input:
+        get_vcf_file
+    output:
+        #"qc_bcftools/{sample}.csq.vcf.gz"
+        "qc_bcftools/{sample}.csq.tsv"
+    params:
+        script="bcftools csq",
+        ref=get_reference_genome,
+        gff=get_annotation_gff,
+        outtype="t"
+        #outtype="z"
+    shell:
+        "{params.script} --fasta-ref {params.ref} --gff-annot {params.gff} --output {output} --output-type {params.outtype} {input}"
 
