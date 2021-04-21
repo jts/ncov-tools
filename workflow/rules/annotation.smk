@@ -52,8 +52,7 @@ def get_bcftools_vcf_files(wildcards):
     """
     Return a list of bcftools csq VCF files
     """
-    pattern = "qc_bcftools/{sample}.csq.tsv"
-    #pattern = "qc_bcftools/{sample}.csq.vcf.gz"
+    pattern = "qc_bcftools/{sample}.csq.vcf.gz"
     out = [pattern.format(sample=s) for s in get_sample_names()]
     return out
 
@@ -141,14 +140,12 @@ rule run_bcftools_csq:
     input:
         get_vcf_file
     output:
-        #"qc_bcftools/{sample}.csq.vcf.gz"
-        "qc_bcftools/{sample}.csq.tsv"
+        "qc_bcftools/{sample}.csq.vcf.gz"
     params:
         script="bcftools csq",
         ref=get_reference_genome,
         gff=get_annotation_gff,
-        outtype="t"
-        #outtype="z"
+        outtype="z"
     shell:
         "{params.script} --fasta-ref {params.ref} --gff-annot {params.gff} --output {output} --output-type {params.outtype} {input}"
 
