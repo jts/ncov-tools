@@ -25,6 +25,7 @@ dependencies:
   - numpy=1.19.1
   - biopython=1.77
   - snpeff=5.0-0
+  - bcftools
   - pip:
       - dendropy>=4.4.0
       - pyvcf
