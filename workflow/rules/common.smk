@@ -214,6 +214,8 @@ def get_annotated_variants(wildcards):
 def get_all_masked_consensus(wildcards):
     return ["masked_fasta/{sample}.masked_consensus.fasta".format(sample=s) for s in get_sample_names()]
     
+def get_annotation_gff(wildcards):
+    return config["annotation_gff"].format(data_root=config["data_root"])
 
 # generate the amplicon-level bed file from the input primer bed
 rule make_amplicon_bed:
