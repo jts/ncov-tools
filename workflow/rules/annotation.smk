@@ -46,6 +46,13 @@ def get_primer_snp_depth_table(wildcards):
     out = "qc_annotation/%s.primer_snp_depth_summary.tsv" % (prefix)
     return out
 
+def get_snpeff_dirs():
+    snpeff_dirs = list()
+    for snpeff_dir in os.scandir('/'.join([os.environ['CONDA_PREFIX'], 'share'])):
+        if snpeff_dir.name.startswith('snpeff'):
+            snpeff_dirs.append(snpeff_dir.name)
+    return snpeff_dirs
+
 #
 # Rules for annotating variants with functional consequence
 #
@@ -56,11 +63,13 @@ rule all_qc_annotation:
 
 rule build_snpeff_db:
     input:
-        expand(os.environ['CONDA_PREFIX'] + '/share/snpeff-5.0-0/data/MN908947.3/snpEffectPredictor.bin')
+        expand(os.environ['CONDA_PREFIX'] + '/share/{snpeff_dir}/data/MN908947.3/snpEffectPredictor.bin', snpeff_dir=get_snpeff_dirs())
 
 rule download_db_files:
+    input:
+        expand(os.environ['CONDA_PREFIX'] + '/share/{snpeff_dir}', snpeff_dir=get_snpeff_dirs())
     output:
-        expand(os.environ['CONDA_PREFIX'] + '/share/snpeff-5.0-0/data/MN908947.3/snpEffectPredictor.bin')
+        expand(os.environ['CONDA_PREFIX'] + '/share/{snpeff_dir}/data/MN908947.3/snpEffectPredictor.bin', snpeff_dir=get_snpeff_dirs())
     params:
         script=srcdir("../scripts/build_db.py")
     shell:
@@ -92,9 +101,10 @@ rule run_snpeff:
     params:
         script="snpEff",
         db="MN908947.3",
-        aa_letter="-hgvs1LetterAa"
+        aa_letter="-hgvs1LetterAa",
+        no_log="-noLog"
     shell:
-        "{params.script} {params.aa_letter} {params.db} {input} > {output}"
+        "{params.script} {params.no_log} {params.aa_letter} {params.db} {input} > {output}"
 
 
 rule convert_annotated_vcf_to_aa_table:

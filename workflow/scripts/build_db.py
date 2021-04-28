@@ -6,15 +6,16 @@ A small workaround for building the MN908947.3 database in snpeff.
 
 import os
 
-SNPEFF_PREFIX = 'snpeff-5.0-0'
+snpeff_dir_prefix = 'snpeff'
 
 def main():
     """
     Main function to run shell commands to build the MN908947.3 snpEff database
     """
-    snpeff_dir = '/'.join([os.environ['CONDA_PREFIX'], 'share', SNPEFF_PREFIX])
-    os.chdir(snpeff_dir)
-    os.system('./scripts/buildDbNcbi.sh MN908947.3')
+    for dir_name in os.scandir('/'.join([os.environ['CONDA_PREFIX'], 'share'])):
+        if dir_name.name.startswith(snpeff_dir_prefix):
+            os.chdir('/'.join([os.environ['CONDA_PREFIX'], 'share', dir_name.name]))
+            os.system(f'{"/".join([os.environ["CONDA_PREFIX"], "share", dir_name.name, "scripts/buildDbNcbi.sh"])} MN908947.3')
 
 
 if __name__ == "__main__":
