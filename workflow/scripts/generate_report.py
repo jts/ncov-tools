@@ -306,9 +306,11 @@ def write_flagged_sample_section():
     tf.name_map = { "sample" : "Sample",
                     "lineage" : "Lineage",
                     "lineage_notes" : "Pangolin Notes",
+                    "genome_completeness" : "Percent Complete",
                     "watch_mutations" : "Notable Mutations" }
 
     tf.row_func = { "watch_mutations" : lambda value : value.replace(",", ", "),
+                    "genome_completeness" : lambda value : "%.1f" % (float(value) * 100.0),
                     "lineage_notes" : lambda value : value.split("_")[0] }
 
     tf.row_accept = partial(flagged_sample_accept, args.voc_lineages.split(","))
@@ -322,14 +324,13 @@ def write_flagged_sample_section():
                          "num_variants_snvs", 
                          "num_variants_indel", 
                          "num_variants_indel_triplet", 
-                         "genome_completeness",
                          "median_sequencing_depth",
                          "collection_date",
                          "num_consensus_n", 
                          "num_weeks", 
                          "scaled_variants_snvs",
                          "qc_pass" ]
-    tf.table_spec = "{|c|c|c|c|}"
+    tf.table_spec = "{|c|C{1.5cm}|c|c|C{5cm}|}"
     tsv_to_table(args.summary_qc_table.format(run_name=args.run_name), tf)
 
 
