@@ -24,6 +24,7 @@ class TableFormatter:
         self.column_filter = dict()
         self.row_accept = None
         self.table_spec = ""
+        self.row_sort_key = None
         self.size = "normalsize"
 
 # convert a pdf to a collection of pngs, returning a list of the generated filenames
@@ -113,6 +114,9 @@ def tsv_to_table(filename, table_formatter):
                     row[k] = table_formatter.row_func[k](row[k])
             rows.append(row.values())
 
+
+        if table_formatter.row_sort_key != None:
+            rows = sorted(rows, key=table_formatter.row_sort_key)
         # write latex to stdout
         write_table(table_formatter.table_spec, header, rows, table_formatter.size)
 
@@ -288,6 +292,9 @@ def flagged_sample_accept(accept_lineages, row):
         is_voc_lineage = row['lineage'].startswith(l) or is_voc_lineage
     return row['watch_mutations'] != "none" or is_voc_lineage
 
+def get_lineage(row):
+    return list(row)[2]
+
 # write the section containing samples that are VOCs or have notable mutations
 def write_flagged_sample_section():
     print(r"\section{Flagged Samples}")
@@ -331,6 +338,7 @@ def write_flagged_sample_section():
                          "scaled_variants_snvs",
                          "qc_pass" ]
     tf.table_spec = "{|c|C{1.5cm}|c|c|C{5cm}|}"
+    tf.row_sort_key = get_lineage
     tsv_to_table(args.summary_qc_table.format(run_name=args.run_name), tf)
 
 
