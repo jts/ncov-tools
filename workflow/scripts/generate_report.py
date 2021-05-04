@@ -24,6 +24,7 @@ class TableFormatter:
         self.column_filter = dict()
         self.row_accept = None
         self.table_spec = ""
+        self.row_sort_key = None
         self.size = "normalsize"
 
 # convert a pdf to a collection of pngs, returning a list of the generated filenames
@@ -113,6 +114,9 @@ def tsv_to_table(filename, table_formatter):
                     row[k] = table_formatter.row_func[k](row[k])
             rows.append(row.values())
 
+
+        if table_formatter.row_sort_key != None:
+            rows = sorted(rows, key=table_formatter.row_sort_key)
         # write latex to stdout
         write_table(table_formatter.table_spec, header, rows, table_formatter.size)
 
@@ -280,7 +284,16 @@ def write_summary_qc_section():
 # this is used to pull out samples from the summary qc file that should
 # appear in the flagged sample section
 def flagged_sample_accept(accept_lineages, row):
-    return row['watch_mutations'] != "none" or row['lineage'] in accept_lineages
+
+    # handle sublineages by checking whether the pangolin assignment
+    # has a prefix containing a flagged lineage
+    is_voc_lineage = False
+    for l in accept_lineages:
+        is_voc_lineage = row['lineage'].startswith(l) or is_voc_lineage
+    return row['watch_mutations'] != "none" or is_voc_lineage
+
+def get_lineage(row):
+    return list(row)[2]
 
 # write the section containing samples that are VOCs or have notable mutations
 def write_flagged_sample_section():
@@ -300,9 +313,11 @@ def write_flagged_sample_section():
     tf.name_map = { "sample" : "Sample",
                     "lineage" : "Lineage",
                     "lineage_notes" : "Pangolin Notes",
+                    "genome_completeness" : "Percent Complete",
                     "watch_mutations" : "Notable Mutations" }
 
     tf.row_func = { "watch_mutations" : lambda value : value.replace(",", ", "),
+                    "genome_completeness" : lambda value : "%.1f" % (float(value) * 100.0),
                     "lineage_notes" : lambda value : value.split("_")[0] }
 
     tf.row_accept = partial(flagged_sample_accept, args.voc_lineages.split(","))
@@ -316,14 +331,14 @@ def write_flagged_sample_section():
                          "num_variants_snvs", 
                          "num_variants_indel", 
                          "num_variants_indel_triplet", 
-                         "genome_completeness",
                          "median_sequencing_depth",
                          "collection_date",
                          "num_consensus_n", 
                          "num_weeks", 
                          "scaled_variants_snvs",
                          "qc_pass" ]
-    tf.table_spec = "{|c|c|c|c|}"
+    tf.table_spec = "{|c|C{1.5cm}|c|c|C{5cm}|}"
+    tf.row_sort_key = get_lineage
     tsv_to_table(args.summary_qc_table.format(run_name=args.run_name), tf)
 
 
