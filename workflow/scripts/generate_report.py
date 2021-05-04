@@ -280,7 +280,13 @@ def write_summary_qc_section():
 # this is used to pull out samples from the summary qc file that should
 # appear in the flagged sample section
 def flagged_sample_accept(accept_lineages, row):
-    return row['watch_mutations'] != "none" or row['lineage'] in accept_lineages
+
+    # handle sublineages by checking whether the pangolin assignment
+    # has a prefix containing a flagged lineage
+    is_voc_lineage = False
+    for l in accept_lineages:
+        is_voc_lineage = row['lineage'].startswith(l) or is_voc_lineage
+    return row['watch_mutations'] != "none" or is_voc_lineage
 
 # write the section containing samples that are VOCs or have notable mutations
 def write_flagged_sample_section():
