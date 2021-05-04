@@ -1,9 +1,21 @@
 #
 # Helper functions and rules
 #
+from pathlib import Path
+
 include: "defaults.smk"
 
 configfile: "config.yaml"
+
+# to handle custom output directories make input paths in config absolute
+# paths then assign snakemake workdir to the specified config workdir
+# as data_root is built into the remaining input paths
+if 'output_directory' in config:
+    for input_path_config in ['data_root', 'primer_bed', 'reference_genome', 'tree_include_consensus']:
+        if input_path_config in config:
+            config[input_path_config] = str(Path(config[input_path_config]).absolute())
+    workdir: config['output_directory']
+
 
 def get_sample_names():
 
