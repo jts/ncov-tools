@@ -139,6 +139,11 @@ completeness_threshold: 0.9
 # or the path to a local VCF file. 
 # Built in lists: https://github.com/jts/ncov-watch/tree/master/ncov_watch/watchlists
 mutation_set: spike_mutations
+
+# user specifiable output directory 
+# defaults to just current working directory but otherwise
+# will write output files to the specified directory
+output_directory: run1_output
 ```
 
 ## Running
