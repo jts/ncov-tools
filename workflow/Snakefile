@@ -14,4 +14,5 @@ rule all:
         get_qc_sequencing_plots,
         get_qc_analysis_plots,
         get_qc_reports,
-        get_recurrent_heatmap_plot
+        get_recurrent_heatmap_plot,
+        get_primer_snp_depth_table
