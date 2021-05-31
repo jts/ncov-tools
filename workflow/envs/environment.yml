@@ -1,4 +1,4 @@
-name: ncov-qc-test
+name: ncov-qc
 channels:
   - conda-forge
   - bioconda
