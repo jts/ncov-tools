@@ -1,4 +1,4 @@
-name: ncov-qc
+name: ncov-qc-test
 channels:
   - conda-forge
   - bioconda
@@ -8,7 +8,7 @@ dependencies:
   - mafft
   - augur
   - pysam
-  - r-base=3.6.1
+  - r-base=3.6.3
   - iqtree<2
   - bioconductor-ggtree=2.0.0
   - r-argparse
@@ -26,7 +26,7 @@ dependencies:
   - biopython=1.77
   - snpeff=5.0-0
   - icu=68.1
-  - boost-cpp=1.75.0
+  - boost-cpp=1.74.0
   - usher
   - pip:
       - dendropy>=4.4.0
