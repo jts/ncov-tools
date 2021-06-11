@@ -74,9 +74,11 @@ rule make_lineage_assignments:
         "qc_analysis/{prefix}_consensus.fasta"
     output:
         "lineages/{prefix}_lineage_report.csv"
+    params:
+        usher_opt = get_pangolin_engine
     threads: workflow.cores
     shell:
-        "pangolin --outfile {output} {input}"
+        "pangolin {params.usher_opt} --outfile {output} {input}"
 
 # write pangolin version information to a file
 # this depends on the pangolin output file to
