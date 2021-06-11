@@ -339,7 +339,7 @@ def write_flagged_sample_section():
                          "num_weeks", 
                          "scaled_variants_snvs",
                          "qc_pass" ]
-    tf.table_spec = "{|c|C{1.5cm}|c|C{1.5cm}|c|C{5cm}|}"
+    tf.table_spec = "{|c|C{1.5cm}|c|C{3cm}|c|C{5cm}|}"
     tf.row_sort_key = get_lineage
     tsv_to_table(args.summary_qc_table.format(run_name=args.run_name), tf)
 
