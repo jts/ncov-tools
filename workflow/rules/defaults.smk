@@ -60,3 +60,11 @@ def get_watch_mutation_set(wildcards):
 #
 def get_voc_pango_lineages(wildcards):
     return config.get("voc_pango_lineages", "B.1.1.7,B.1.351,P.1")
+
+#
+def get_pangolin_engine(wildcards):
+    pangolin_engine = config.get("pangolin_engine", "")
+    if pangolin_engine == "usher":
+        return "--usher"
+    else:
+        return ""
