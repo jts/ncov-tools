@@ -59,4 +59,4 @@ def get_watch_mutation_set(wildcards):
 
 #
 def get_voc_pango_lineages(wildcards):
-    return config.get("voc_pango_lineages", "B.1.1.7,B.1.351,P.1")
+    return config.get("voc_pango_lineages", "B.1.1.7,B.1.351,P.1,B.1.617.2")
