@@ -148,7 +148,7 @@ rule make_qc_plot_depth_by_position:
 # plot coverage, except only for the negative controls
 rule make_qc_plot_depth_by_position_negative_controls:
     input:
-        expand("qc_sequencing_negative_control/{s}.per_base_coverage.bed", s=get_negative_control_samples())
+        expand("qc_sequencing_negative_control/{s}.per_base_coverage.bed", s=get_valid_negative_control_samples())
     output:
         "plots/{prefix}_depth_by_position_negative_control.pdf"
     params:
