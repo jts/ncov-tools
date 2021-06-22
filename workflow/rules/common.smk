@@ -47,12 +47,22 @@ def get_negative_control_samples():
     else:
         return []
 
+def get_valid_negative_control_samples():
+    valid_samples = list()
+    bp = get_bam_pattern()
+    for sample in get_negative_control_samples():
+        bam = bp.format(data_root=config["data_root"], sample=sample)
+        if os.path.exists(bam):
+            valid_samples.append(sample)
+    return valid_samples
+
 # negative controls may not have bams so we need to filter
 # out those that don't have alignments
 def get_negative_control_bed(wildcards):
     bp = get_bam_pattern()
     out = list()
-    for s in get_negative_control_samples():
+    #for s in get_negative_control_samples():
+    for s in get_valid_negative_control_samples():
         bam = bp.format(data_root=config["data_root"], sample=s)
         if os.path.exists(bam):
             out.append("qc_sequencing/{sample}.amplicon_base_coverage.bed".format(sample=s))
@@ -200,7 +210,8 @@ def get_qc_reports(wildcards):
         out.append(get_ambiguous_report(wildcards))
 
     # only try to make negative control report if NC samples have been defined
-    if len(get_negative_control_samples()) > 0:
+    #if len(get_negative_control_samples()) > 0:
+    if len(get_valid_negative_control_samples()) > 0:
         out.append(get_negative_control_report(wildcards))
     return out
 
@@ -210,7 +221,8 @@ def get_report_tex_input(wildcards):
     if get_snp_tree_flag():
         out.append("plots/%s_tree_snps.pdf" % (wildcards.prefix))
 
-    if len(get_negative_control_samples()) > 0:
+    #if len(get_negative_control_samples()) > 0:
+    if len(get_valid_negative_control_samples()) > 0:
         out.append("plots/%s_depth_by_position_negative_control.pdf" % (wildcards.prefix))
     return out
 
