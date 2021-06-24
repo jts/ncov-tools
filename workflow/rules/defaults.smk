@@ -1,6 +1,7 @@
 #
 # Wrapper for accessing the config, with sensible defaults
 #
+import re
 
 #
 def get_bam_pattern():
@@ -60,3 +61,14 @@ def get_watch_mutation_set(wildcards):
 #
 def get_voc_pango_lineages(wildcards):
     return config.get("voc_pango_lineages", "B.1.1.7,B.1.351,P.1,B.1.617.2")
+
+#
+def get_data_directory(wildcards=None):
+    return config["data_root"]
+
+#
+def get_variant_format_pattern(wildcards=None):
+    variant_format_pattern = config['variants_pattern']
+    _pattern = re.sub('{data_root}/{sample}', '', variant_format_pattern)
+    return _pattern
+
