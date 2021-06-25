@@ -41,7 +41,7 @@ rule make_negative_control_report:
 rule make_mixture_report:
     input:
         fpileups="qc_sequencing/{prefix}_fpileups.fofn",
-        alleles="qc_analysis/{prefix}_alleles.tsv"
+        alleles="qc_analysis/{prefix}_alleles_vcf.tsv"
     output:
         "qc_reports/{prefix}_mixture_report.tsv"
     params:
