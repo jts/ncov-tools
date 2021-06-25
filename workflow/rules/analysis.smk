@@ -68,6 +68,18 @@ rule make_alleles:
     shell:
         "python {params.alleles_script} --reference-name MN908947.3 {input} > {output}"
 
+# parse the data directory and create the alleles file from sample VCFs
+rule make_alleles_vcf:
+    input:
+        get_data_directory
+    output:
+        "qc_analysis/{prefix}_alleles_vcf.tsv"
+    params:
+        script="/.mounts/labs/simpsonlab/projects/ncov/code/ncov-tools/workflow/scripts/vcf2alleles.py",
+        pattern=get_variant_format_pattern
+    shell:
+        "python {params.script} --path {input} --pattern {params.pattern} > {output}"
+
 # assign lineages to the consensus genomes using pangolin
 rule make_lineage_assignments:
     input:
