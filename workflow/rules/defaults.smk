@@ -42,6 +42,10 @@ def get_primer_offset(wildcards):
 def get_primer_bed_type_opt(wildcards):
     return config.get("bed_type", "unique_amplicons")
 
+# get the primer name prefix from the config.yaml file
+def get_primer_prefix(wildcards):
+    return config.get("primer_prefix", "nCoV-2019")
+
 def get_snp_tree_flag(wildcards=None):
     return config.get("build_snp_tree", True)
 
