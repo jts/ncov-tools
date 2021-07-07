@@ -245,9 +245,10 @@ rule make_amplicon_bed:
     params:
         script="primers_to_amplicons.py",
         offset=get_primer_offset,
-        bed_type_opt=get_primer_bed_type_opt
+        bed_type_opt=get_primer_bed_type_opt,
+        primer_prefix=get_primer_prefix
     shell:
-        "{params.script} --primers {input.primers} --offset {params.offset} --bed_type {params.bed_type_opt} --output {output}"
+        "{params.script} --primers {input.primers} --offset {params.offset} --bed_type {params.bed_type_opt} --output {output} --primer_prefix {params.primer_prefix}"
 
 rule make_amplicon_full_bed:
     input:
@@ -255,9 +256,20 @@ rule make_amplicon_full_bed:
     output:
         "bed/amplicon_full.bed"
     params:
-        script="primers_to_amplicons.py"
+        script="primers_to_amplicons.py",
+        primer_prefix=get_primer_prefix
     shell:
-        "{params.script} --primers {input.primers} --bed_type full --output {output}"
+        "{params.script} --primers {input.primers} --bed_type full --output {output} --primer_prefix {params.primer_prefix}"
+
+rule index_reference_genome:
+    input:
+        get_reference_genome
+    output:
+        expand(config["reference_genome"] + ".fai")
+    params:
+        exec="samtools faidx"
+    shell:
+        "{params.exec} {input}"
 
 # make a bed file for the entire reference genome as a single record
 # from: https://bioinformatics.stackexchange.com/questions/91/how-to-convert-fasta-to-bed
