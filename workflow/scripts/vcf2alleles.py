@@ -33,10 +33,11 @@ def write_alleles_line(row):
     * alt_allele
     * samples_with_allele
     """
-    samples_with_alleles = len(row['samples']) - 1
+    samples_with_alleles = len(row['samples'])
     for sample in row['samples']:
         if samples_with_alleles < 1:
             continue
+        # ignore indels
         elif len(str(sample['ref'])) > 1 or len(str(sample['alt'])) > 1:
             continue
         else:
