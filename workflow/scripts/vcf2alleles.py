@@ -48,6 +48,41 @@ def write_alleles_line(row):
                              str(samples_with_alleles)]))
 
 
+def is_ambiguous(vaf, upper_limit=0.75, lower_limit=0.25):
+    """
+    Determine whether the ALT allele should be an IUPAC code
+    based on the VAF.
+    """
+    assert vaf > lower_limit, "VAF must be greater than 0.25"
+    if vaf >= upper_limit:
+        return False
+    elif vaf < upper_limit:
+        return True
+    else:
+        sys.exit('Invalid VAF')
+        
+
+def get_iupac(ref, alt):
+    """
+    From the concatenated reference and alternate allele,
+    return the corresponding IUPAC code.
+    """
+    ref_alt = ''.join([ref, alt])
+    iupac_map = { "AC" : "M",
+                  "CA" : "M",
+                  "AG" : "R",
+                  "GA" : "R",
+                  "AT" : "W",
+                  "TA" : "W",
+                  "CG" : "S",
+                  "GC" : "S",
+                  "CT" : "Y",
+                  "TC" : "Y",
+                  "TG" : "K",
+                  "GT" : "K" }
+    return iupac_map[ref_alt]
+
+
 def main():
     args = init_args()
     var_dict = dict()
@@ -55,6 +90,12 @@ def main():
         if file.endswith(args.pattern):
             vcf_reader = vcf.Reader(filename='/'.join([args.path, file]))
             for var in vcf_reader:
+                # skip indels
+                if len(str(var.REF)) > 1 or len(str(var.ALT[0])) > 1:
+                    continue
+                vaf = var.INFO['VAF'][0]
+                if is_ambiguous(vaf):
+                    var.ALT[0] = get_iupac(str(var.REF), str(var.ALT[0]))
                 var_id = create_vcf_variant_id(var=var)
                 if var_id not in var_dict:
                     var_dict[var_id] = create_default_sample(name=get_sample_name(file=file, pattern=args.pattern), pos=var.POS, ref=var.REF, alt=var.ALT[0])
