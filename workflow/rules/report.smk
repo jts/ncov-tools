@@ -33,9 +33,10 @@ rule make_negative_control_report:
     output:
         "qc_reports/{prefix}_negative_control_report.tsv"
     params:
-        script=srcdir("../scripts/negative_control_check.py")
+        script=srcdir("../scripts/negative_control_check.py"),
+        primer_prefix=get_primer_prefix
     shell:
-        "python {params.script} {input.bed} > {output}"
+        "python {params.script} --primer_prefix {params.primer_prefix} {input.bed} > {output}"
 
 # detect possible contaimination or mixtures of samples based on allele frequencies
 rule make_mixture_report:
