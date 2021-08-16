@@ -2,6 +2,7 @@ import argparse
 import pysam
 import sys
 import csv
+import re
 import os
 
 class RegionCoverage:
@@ -27,6 +28,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--max-coverage', type=int, default=5)
 parser.add_argument('--max-amplicon-coverage', type=int, default=20)
 parser.add_argument('--max-amplicon-fraction', type=int, default=0.5)
+parser.add_argument('--primer_prefix', type=str, default="nCoV-2019")
 args, files = parser.parse_known_args()
 
 
@@ -41,7 +43,7 @@ for fn in files:
         for row in reader:
             position = int(row["start"]) + int(row["position"])
             depth = int(row["depth"])
-            amplicon_id = int(row["amplicon_id"].split("_")[1])
+            amplicon_id = int(re.sub("[^0-9]", '', row["amplicon_id"].lstrip(args.primer_prefix)))
 
             #
             genome_coverage.update(position, depth)
