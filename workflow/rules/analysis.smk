@@ -75,7 +75,7 @@ rule make_alleles_vcf:
     output:
         "qc_analysis/{prefix}_alleles_vcf.tsv"
     params:
-        script="/.mounts/labs/simpsonlab/projects/ncov/code/ncov-tools/workflow/scripts/vcf2alleles.py",
+        script=srcdir("../scripts/vcf2alleles.py"),
         pattern=get_variant_format_pattern
     shell:
         "python {params.script} --path {input} --pattern {params.pattern} > {output}"
