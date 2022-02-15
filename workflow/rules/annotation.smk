@@ -56,12 +56,27 @@ def get_bcftools_vcf_files(wildcards):
     out = [pattern.format(sample=s) for s in get_sample_names()]
     return out
 
+def get_bcftools_aa_table_files(wildcards):
+    """
+    Returns a list of aa table files from bcftools csq VCF files
+    """
+    pattern = "qc_bcftools/{sample}_aa_table.tsv"
+    out = [pattern.format(sample=s) for s in get_sample_names()]
+    return out
+
+def get_bcftools_recurrent_heatmap_plot(wildcards):
+    prefix = get_run_name()
+    out = "plots/%s_aa_mutation_heatmap_bcftools.pdf" % (prefix)
+    return out
+
 #
 # Rules for annotating variants with functional consequence
 #
 rule run_bcftools:
     input:
-        get_bcftools_vcf_files
+        get_bcftools_recurrent_heatmap_plot
+        #get_bcftools_aa_table_files
+        #get_bcftools_vcf_files
 
 rule all_qc_annotation:
     input:
@@ -149,3 +164,24 @@ rule run_bcftools_csq:
     shell:
         "{params.script} --fasta-ref {params.ref} --gff-annot {params.gff} --output {output} --output-type {params.outtype} {input}"
 
+rule convert_bcftools_vcf_to_aa_table:
+    input:
+        vcf="qc_bcftools/{sample}.csq.vcf.gz"
+    output:
+        "qc_bcftools/{sample}_aa_table.tsv"
+    params:
+        script=srcdir("../scripts/convert_recurrent_bcftools_data.py"),
+        sample="{sample}"
+    shell:
+        "python {params.script} --vcf {input.vcf} --sample {params.sample} --output {output}"
+
+rule create_bcftools_recurrent_mutation_heatmap:
+    input:
+        get_bcftools_aa_table_files
+    output:
+        "plots/{prefix}_aa_mutation_heatmap_bcftools.pdf"
+    params:
+        script=srcdir("../scripts/plot/plot_recurrent_variant_heatmap_bcftools.R"),
+        threshold=get_threshold_opt
+    shell:
+        "Rscript {params.script} --path qc_bcftools --output {output} --threshold {params.threshold}"
