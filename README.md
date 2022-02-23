@@ -144,6 +144,11 @@ mutation_set: spike_mutations
 # defaults to just current working directory but otherwise
 # will write output files to the specified directory
 output_directory: run1_output
+
+# primer name prefix used in the primer scheme BED file, the default
+# value is "nCoV-2019" which is used for ARTIC V3, note that
+# ARTIC V4.1 uses `SARS-CoV-2`
+primer_prefix: "SARS-CoV-2"
 ```
 
 ## Running
