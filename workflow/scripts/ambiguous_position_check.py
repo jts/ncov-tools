@@ -21,6 +21,7 @@ args = parser.parse_args()
 
 alleles = ncov.parser.Alleles(file=args.alleles)
 
+ambiguous_samples = defaultdict(list)
 ambiguous_counts = defaultdict(int)
 ambiguous_alleles = defaultdict(dict)
 for sample, records in alleles.data.items():
@@ -28,11 +29,12 @@ for sample, records in alleles.data.items():
         aa = records[position]['alt']
         if aa != 'N' and ncov.parser.is_variant_iupac(aa):
             p = int(position)
+            ambiguous_samples[p] += [sample]
             ambiguous_counts[p] += 1
             ambiguous_alleles[p][aa] = 1
 
-print("position\tcount\talleles")
+print("position\tcount\talleles\tsamples")
 for position in sorted(ambiguous_counts.keys()):
     count = ambiguous_counts[position]
     if count >= args.min_count:
-        print("%d\t%d\t%s" % (int(position), count, ",".join(ambiguous_alleles[position])))
+        print("\t".join([str(position), str(count), ",".join(ambiguous_alleles[position]), ",".join(ambiguous_samples[position])]))
