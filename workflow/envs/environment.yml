@@ -1,4 +1,4 @@
-name: ncov-qc-rdb
+name: ncov-qc
 channels:
   - conda-forge
   - bioconda
