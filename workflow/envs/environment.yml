@@ -1,4 +1,4 @@
-name: ncov-qc
+name: ncov-qc-rdb
 channels:
   - conda-forge
   - bioconda
@@ -32,10 +32,8 @@ dependencies:
       - dendropy>=4.4.0
       - pyvcf
       - ncov-parser
-      - git+https://github.com/hCoV-2019/lineages.git
-      - git+https://github.com/hCoV-2019/pangolin.git
-      - git+https://github.com/cov-lineages/pangoLEARN.git
+      - git+https://github.com/cov-lineages/pangolin.git
+      - git+https://github.com/cov-lineages/pangolin-data.git
       - git+https://github.com/cov-lineages/constellations.git
       - git+https://github.com/cov-lineages/scorpio.git
-      - git+https://github.com/cov-lineages/pango-designation.git
       - git+https://github.com/jts/ncov-watch.git
