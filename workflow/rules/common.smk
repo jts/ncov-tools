@@ -235,6 +235,15 @@ def get_annotated_variants(wildcards):
 def get_all_masked_consensus(wildcards):
     return ["masked_fasta/{sample}.masked_consensus.fasta".format(sample=s) for s in get_sample_names()]
     
+def get_pangolin_version_opt(wildcards):
+    if "pangolin_version" in config:
+        return "--pangolin_ver %s" % (config['pangolin_version'])
+    else:
+        return ""
+
+    
+
+
 
 # generate the amplicon-level bed file from the input primer bed
 rule make_amplicon_bed:

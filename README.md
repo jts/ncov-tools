@@ -226,6 +226,20 @@ Variant annotation output can be found in `qc_annotation` and the recurrent
 amino acid change heatmap can be found in `plots/<prefix>_aa_mutation_heatmap.pdf`.
 
 
+## Pangolin Version 4
+Pangolin version 4 included several changes which required updates
+to the `ncov-tools` environment.  By default, `ncov-tools` will run pangolin
+4 and will require changes to `ncov-parser` version 1.9 to parse the output
+and populate the summary QC file.
+
+Backward compability with Pangolin 3 is available and will require the following
+parameter addition in the `config.yaml` file:
+```
+pangolin_version: "3"
+```
+Note that the specific version is not required, only if it is "3" or "4".
+
+
 ## Credit and Acknowledgements
 
 * The tree-with-SNPs plot was inspired by a plot shared by Mads Albertsen.

@@ -152,7 +152,8 @@ rule make_sample_qc_summary:
         py_script="get_qc.py",
         metadata_opt=get_qc_summary_metadata_opt,
         platform_opt=get_platform_opt,
-        run_name_opt=get_run_name_opt
+        run_name_opt=get_run_name_opt,
+        pangolin_version_opt=get_pangolin_version_opt
     shell:
         "{params.py_script} --alleles {input.alleles} \
                             --coverage {input.samplecoverage} \
@@ -162,7 +163,7 @@ rule make_sample_qc_summary:
                             --sample {wildcards.sample} \
                             --lineage {input.lineagereport} \
                             --aa_table {input.aa_table} \
-                            --mutations {input.watch} \
+                            --mutations {input.watch} {params.pangolin_version_opt} \
                             --run_name {params.run_name_opt} > {output}"
 
 # merge the per-sample summary files into the run-level report
