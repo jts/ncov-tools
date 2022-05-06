@@ -1,4 +1,4 @@
-name: ncov-qc-pyvcf3
+name: ncov-qc
 channels:
   - conda-forge
   - bioconda
