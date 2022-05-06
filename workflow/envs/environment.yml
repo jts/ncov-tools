@@ -1,4 +1,4 @@
-name: ncov-qc
+name: ncov-qc-pyvcf3
 channels:
   - conda-forge
   - bioconda
@@ -30,7 +30,7 @@ dependencies:
   - usher
   - pip:
       - dendropy>=4.4.0
-      - pyvcf
+      - pyvcf3
       - ncov-parser
       - git+https://github.com/cov-lineages/pangolin.git
       - git+https://github.com/cov-lineages/pangolin-data.git
