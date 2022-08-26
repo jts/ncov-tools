@@ -74,9 +74,11 @@ rule make_lineage_assignments:
         "qc_analysis/{prefix}_consensus.fasta"
     output:
         "lineages/{prefix}_lineage_report.csv"
+    params:
+        pango_analysis_mode=get_pangolin_analysis_mode
     threads: workflow.cores
     shell:
-        "pangolin --outfile {output} {input}"
+        "pangolin --outfile {output} --analysis-mode {params.pango_analysis_mode} {input}"
 
 # write pangolin version information to a file
 # this depends on the pangolin output file to

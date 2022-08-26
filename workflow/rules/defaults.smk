@@ -62,5 +62,9 @@ def get_watch_mutation_set(wildcards):
     return config.get("mutation_set", "spike_mutations")
 
 #
+def get_pangolin_analysis_mode(wildcards):
+    return config.get("pango_analysis_mode", "accurate")
+
+#
 def get_voc_pango_lineages(wildcards):
     return config.get("voc_pango_lineages", "B.1.1.7,B.1.351,P.1,B.1.617.2")
