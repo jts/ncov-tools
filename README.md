@@ -239,6 +239,13 @@ pangolin_version: "3"
 ```
 Note that the specific version is not required, only if it is "3" or "4".
 
+Support for option `--analysis-mode` for `pangolin 4` has been provided as of `ncov-tools`
+version 1.9.1.  The `config.yaml` file should contain the following entry:
+```
+pango_analysis_mode: "accurate"
+```
+The available options are: `accurate (default)` and `fast`.  See the `pangolin`
+[documentation](https://cov-lineages.org/resources/pangolin/usage.html) for further details.
 
 ## Credit and Acknowledgements
 
