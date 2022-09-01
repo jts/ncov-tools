@@ -65,6 +65,14 @@ def get_watch_mutation_set(wildcards):
 def get_pangolin_analysis_mode(wildcards):
     return config.get("pango_analysis_mode", "accurate")
 
+def get_pangolin_analysis_mode_opt(wildcards):
+    analysis_mode = get_pangolin_analysis_mode(wildcards)
+    pangolin_version = config.get('pangolin_version', '')
+    if pangolin_version == '4' or pangolin_version == '':
+        return f'--analysis-mode {analysis_mode}'
+    else:
+        return ''
+
 #
 def get_voc_pango_lineages(wildcards):
     return config.get("voc_pango_lineages", "B.1.1.7,B.1.351,P.1,B.1.617.2")
