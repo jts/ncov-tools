@@ -75,10 +75,10 @@ rule make_lineage_assignments:
     output:
         "lineages/{prefix}_lineage_report.csv"
     params:
-        pango_analysis_mode=get_pangolin_analysis_mode
+        pango_analysis_mode=get_pangolin_analysis_mode_opt
     threads: workflow.cores
     shell:
-        "pangolin --outfile {output} --analysis-mode {params.pango_analysis_mode} {input}"
+        "pangolin --outfile {output} {params.pango_analysis_mode} {input}"
 
 # write pangolin version information to a file
 # this depends on the pangolin output file to
