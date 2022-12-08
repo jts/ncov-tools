@@ -109,6 +109,9 @@ def calculate(sample_a, sample_b, variants, counts):
         # if A is an IUPAC code, resolve to the non-B allele
         allele_a = resolve_iupac(allele_a, allele_b)
 
+        if allele_a == None:
+            continue
+
         # skip non-informative positions
         if allele_a == allele_b:
             continue
@@ -180,7 +183,6 @@ def resolve_iupac(code, fixed_base):
         elif b == fixed_base:
             return a
         else:
-            assert(False)
             return None
     else:
         return None
@@ -203,6 +205,9 @@ def load_msa_alleles(alleles_fn):
             if ca == "N" or int(row['samples_with_allele']) == 1:
                 continue
             aa = resolve_iupac(ca, ra)
+
+            if aa == None:
+                continue
 
             v = Variant("contig", int(row['pos']), ra, aa)
             out[sample][v] = ca
