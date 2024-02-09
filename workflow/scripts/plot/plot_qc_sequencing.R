@@ -3,7 +3,10 @@ plot_depth_by_amplicon_and_ct <- function(df, metadata, outname)
 {
     # merge df with metadata
     merged = dplyr::inner_join(df, metadata, by = "sample")
-
+    if (nrow(merged) < 1) {
+      ggsave(outname, width=15, height=10)
+      quit()
+    }
     ggplot(merged, aes(x=ct, y=mean_depth)) +
         geom_point() +
         scale_y_log10() +
