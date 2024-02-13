@@ -122,6 +122,9 @@ if(!interactive()) {
 
     if(args$metadata != "") {
         metadata.raw <- read.table(args$metadata, header=T, sep="\t")
+        if(all(is.na(metadata.raw$ct))) {
+          metadata.raw$ct <- 0
+        }
 
         # clean metadata of unknown Cts
         metadata = subset(metadata.raw, ct != "unknown")
