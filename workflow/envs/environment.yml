@@ -2,18 +2,17 @@ name: ncov-qc
 channels:
   - conda-forge
   - bioconda
-  - defaults
 dependencies:
   - snakemake
   - mafft
   - augur
   - pysam
-  - r-base=3.6.3
-  - iqtree<2
-  - bioconductor-ggtree=2.0.0
+  - r-base
+  - iqtree
+  - bioconductor-ggtree
   - r-argparse
-  - r-patchwork=1.0.0
-  - r-ggforce=0.3.1
+  - r-patchwork
+  - r-ggforce
   - bedtools
   - samtools
   - parasail-python
@@ -22,18 +21,18 @@ dependencies:
   - minimap2
   - poppler
   - gofasta
-  - numpy=1.19.1
-  - biopython=1.77
+  - numpy
+  - biopython
   - snpeff=5.0-0
-  - icu=68.1
-  - boost-cpp=1.74.0
+  - icu
+  - boost-cpp
   - usher
+  - setuptools=81.0.0
+  - pangolin
   - pip:
       - dendropy>=4.4.0
       - pyvcf3
       - ncov-parser
-      - git+https://github.com/cov-lineages/pangolin.git
-      - git+https://github.com/cov-lineages/pangolin-data.git
       - git+https://github.com/cov-lineages/constellations.git
       - git+https://github.com/cov-lineages/scorpio.git
       - git+https://github.com/jts/ncov-watch.git

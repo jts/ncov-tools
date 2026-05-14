@@ -24,7 +24,7 @@ rule make_merged_consensus:
         "qc_analysis/{prefix}_consensus.fasta"
     params:
         completeness_opt=get_completeness_threshold_opt,
-        rename_script = srcdir("../scripts/preprocess_consensus.py")
+        rename_script = workflow.source_path("../scripts/preprocess_consensus.py")
     shell:
         "python {params.rename_script} {params.completeness_opt} {input} > {output}"
 
@@ -64,7 +64,7 @@ rule make_alleles:
     output:
         "qc_analysis/{prefix}_alleles.tsv"
     params:
-        alleles_script = srcdir("../scripts/align2alleles.py")
+        alleles_script = workflow.source_path("../scripts/align2alleles.py")
     shell:
         "python {params.alleles_script} --reference-name MN908947.3 {input} > {output}"
 
@@ -124,7 +124,7 @@ rule make_masked_consensus:
         "masked_fasta/{sample}.masked_consensus.fasta"
     threads: 1
     params:
-        masking_script = srcdir("../scripts/mask_genome_amplicons.py")
+        masking_script = workflow.source_path("../scripts/mask_genome_amplicons.py")
     shell:
         "python {params.masking_script} -b {input.amplicons} -n {input.negative_control_report} -r {input.reference} -g {input.sample_consensus} -o {output}"
 
@@ -134,7 +134,7 @@ rule make_qc_tree_snps:
     output:
         "plots/{prefix}_tree_snps.pdf"
     params:
-        plot_script = srcdir("../scripts/plot/plot_tree_snps.R")
+        plot_script = workflow.source_path("../scripts/plot/plot_tree_snps.R")
     shell:
         "Rscript {params.plot_script} {output} {input}"
 
