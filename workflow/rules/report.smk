@@ -33,7 +33,7 @@ rule make_negative_control_report:
     output:
         "qc_reports/{prefix}_negative_control_report.tsv"
     params:
-        script=srcdir("../scripts/negative_control_check.py"),
+        script=workflow.source_path("../scripts/negative_control_check.py"),
         primer_prefix=get_primer_prefix
     shell:
         "python {params.script} --primer_prefix {params.primer_prefix} {input.bed} > {output}"
@@ -46,7 +46,7 @@ rule make_mixture_report:
     output:
         "qc_reports/{prefix}_mixture_report.tsv"
     params:
-        script=srcdir("../scripts/mixture_check.py")
+        script=workflow.source_path("../scripts/mixture_check.py")
     shell:
         "python {params.script} --fpileup {input.fpileups} --alleles {input.alleles} > {output}"
 
@@ -57,7 +57,7 @@ rule make_ambiguous_position_report:
     output:
         "qc_reports/{prefix}_ambiguous_position_report.tsv"
     params:
-        script=srcdir("../scripts/ambiguous_position_check.py")
+        script=workflow.source_path("../scripts/ambiguous_position_check.py")
     shell:
         "python {params.script} --alleles {input.alleles} --min-count 3 > {output}"
 
@@ -68,7 +68,7 @@ rule make_report_tex:
     output:
         "qc_reports/{prefix}.tex"
     params:
-        script=srcdir("../scripts/generate_report.py"),
+        script=workflow.source_path("../scripts/generate_report.py"),
         run_name=get_run_name,
         platform_opt=get_platform_opt,
         voc_lineages=get_voc_pango_lineages

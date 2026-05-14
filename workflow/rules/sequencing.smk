@@ -97,7 +97,7 @@ rule make_formatted_pileup:
     output:
         "qc_sequencing/{sample}.fpileup.tsv"
     params:
-        pileup_script = srcdir("../scripts/format_pileup.py")
+        pileup_script = workflow.source_path("../scripts/format_pileup.py")
     shell:
         "python {params.pileup_script} --bam {input.bam} --reference {input.reference} > {output}"
 
@@ -122,7 +122,7 @@ rule make_qc_plot_amplicon_coverage_heatmap:
         plot="plots/{prefix}_amplicon_coverage_heatmap.pdf",
         table="qc_analysis/{prefix}_amplicon_coverage_table.tsv"
     params:
-        plot_script = srcdir("../scripts/plot/plot_amplicon_coverage_heatmap.R")
+        plot_script = workflow.source_path("../scripts/plot/plot_amplicon_coverage_heatmap.R")
     shell:
         "Rscript {params.plot_script} --path qc_sequencing --output {output.plot} --table {output.table}"
 
@@ -140,7 +140,7 @@ rule make_qc_plot_depth_by_position:
     output:
         "plots/{prefix}_depth_by_position.pdf"
     params:
-        plot_script = srcdir("../scripts/plot/plot_qc_sequencing.R"),
+        plot_script = workflow.source_path("../scripts/plot/plot_qc_sequencing.R"),
         metadata_opt=get_metadata_opt
     shell:
         "Rscript {params.plot_script} -t depth_by_position -o {output} {params.metadata_opt}"
@@ -152,7 +152,7 @@ rule make_qc_plot_depth_by_position_negative_controls:
     output:
         "plots/{prefix}_depth_by_position_negative_control.pdf"
     params:
-        plot_script = srcdir("../scripts/plot/plot_qc_sequencing.R"),
+        plot_script = workflow.source_path("../scripts/plot/plot_qc_sequencing.R"),
         metadata_opt=get_metadata_opt
     shell:
         "Rscript {params.plot_script} -t negative_control_depth_by_position -o {output} {params.metadata_opt}"
@@ -165,7 +165,7 @@ rule make_qc_plot_amplicon_depth_by_ct:
     output:
         "plots/{prefix}_amplicon_depth_by_ct.pdf"
     params:
-        plot_script = srcdir("../scripts/plot/plot_qc_sequencing.R")
+        plot_script = workflow.source_path("../scripts/plot/plot_qc_sequencing.R")
     shell:
         "Rscript {params.plot_script} -t amplicon_depth_by_ct -o {output} -m {input.metadata}"
 
@@ -176,7 +176,7 @@ rule make_qc_plot_fraction_covered_by_amplicon:
     output:
         "plots/{prefix}_amplicon_covered_fraction.pdf"
     params:
-        plot_script = srcdir("../scripts/plot/plot_qc_sequencing.R")
+        plot_script = workflow.source_path("../scripts/plot/plot_qc_sequencing.R")
     shell:
         "Rscript {params.plot_script} -t amplicon_covered_fraction -o {output}"
 
@@ -188,6 +188,6 @@ rule make_qc_genome_completeness_by_ct:
     output:
         "plots/{prefix}_genome_completeness_by_ct.pdf"
     params:
-        plot_script = srcdir("../scripts/plot/plot_qc_sequencing.R")
+        plot_script = workflow.source_path("../scripts/plot/plot_qc_sequencing.R")
     shell:
         "Rscript {params.plot_script} -t genome_completeness_by_ct -o {output} -m {input.metadata}"

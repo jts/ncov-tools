@@ -71,7 +71,7 @@ rule download_db_files:
     output:
         expand(os.environ['CONDA_PREFIX'] + '/share/{snpeff_dir}/data/MN908947.3/snpEffectPredictor.bin', snpeff_dir=get_snpeff_dirs())
     params:
-        script=srcdir("../scripts/build_db.py")
+        script=workflow.source_path("../scripts/build_db.py")
     shell:
         "python {params.script}"
 
@@ -81,7 +81,7 @@ rule convert_ivar_to_vcf:
     output:
         "qc_annotation/{sample}.pass.vcf"
     params:
-        script=srcdir("../scripts/ivar_variants_to_vcf.py")
+        script=workflow.source_path("../scripts/ivar_variants_to_vcf.py")
     shell:
         "{params.script} {input} {output}"
 
@@ -113,7 +113,7 @@ rule convert_annotated_vcf_to_aa_table:
     output:
         "qc_annotation/{sample}_aa_table.tsv"
     params:
-        script=srcdir("../scripts/convert_recurrent_snpeff_data.py"),
+        script=workflow.source_path("../scripts/convert_recurrent_snpeff_data.py"),
         sample="{sample}"
     shell:
         "python {params.script} --file {input.vcf} --sample {params.sample} --output {output}"
@@ -124,7 +124,7 @@ rule create_recurrent_mutation_heatmap:
     output:
         "plots/{prefix}_aa_mutation_heatmap.pdf"
     params:
-        script=srcdir("../scripts/plot/plot_recurrent_variant_heatmap_snpeff.R"),
+        script=workflow.source_path("../scripts/plot/plot_recurrent_variant_heatmap_snpeff.R"),
         threshold=get_threshold_opt
     shell:
         "Rscript {params.script} --path qc_annotation --output {output} --threshold {params.threshold}"
@@ -145,7 +145,7 @@ rule create_primer_snp_depth:
     output:
         "qc_annotation/{sample}.primer_snp_depth.tsv"
     params:
-        script=srcdir("../scripts/primer_snp_depth.py")
+        script=workflow.source_path("../scripts/primer_snp_depth.py")
     shell:
         "python {params.script} --sample-name {wildcards.sample} --primer-snp-bed {input.primer_snps} --amplicon-depth-tsv {input.amplicon_depth} > {output}"
 
@@ -163,7 +163,7 @@ rule summarize_primer_snp_depth:
     output:
         "qc_annotation/{prefix}.primer_snp_depth_summary.tsv"
     params:
-        script=srcdir("../scripts/primer_snp_summary.py")
+        script=workflow.source_path("../scripts/primer_snp_summary.py")
     shell:
         "python {params.script} --input-tsv {input} > {output}"
 
