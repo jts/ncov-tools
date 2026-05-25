@@ -3,8 +3,6 @@ library(ggplot2)
 library(RColorBrewer)
 library(argparse)
 
-path = '/Users/rdeborja/Desktop/vars'
-
 get_func_consequence_levels <- function() {
   return(c(
     'chromosome_number_variation',
